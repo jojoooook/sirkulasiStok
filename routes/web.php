@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomepageController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
 
 Route::get('/', [HomepageController::class, 'index']);
@@ -11,3 +12,5 @@ Route::post('/itemlist', [ItemController::class, 'store'])->name('item.store');
 Route::get('/itemlist/{id}/edit', [ItemController::class, 'edit'])->name('item.edit');
 Route::put('/itemlist/{id}', [ItemController::class, 'update'])->name('item.update');
 Route::delete('/itemlist/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
+Route::resource('item', ItemController::class);
+Route::resource('category', CategoryController::class)->except(['show']);

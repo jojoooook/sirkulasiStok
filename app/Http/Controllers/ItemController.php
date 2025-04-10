@@ -2,108 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Item;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
     public function index()
     {
-        $items = Item::paginate(10);
-        return view('pages.items.index', compact('items')); 
+        $items = Item::with('category')->paginate(10);
+        return view('pages.items.index', compact('items'));
     }
 
     public function create()
     {
-        return view('pages.items.create'); 
+        $categories = Category::all();
+        return view('pages.items.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_barang' => 'required|string|max:255',
-            'kategori' => 'required|string|max:255',
-            'stok' => 'required|integer',
-            'harga' => 'required|numeric',
-            'gambar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category_id' => 'required|exists:categories,id',
+            'stok' => 'required|integer|min:0',
+            'harga' => 'required|numeric|min:0',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = $request->only(['nama_barang', 'kategori', 'stok', 'harga']);
-
-        // Handle upload gambar
+        // Handle file upload first
         if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $destinationPath = public_path('images');
-
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-
-            $file->move($destinationPath, $fileName);
-            $data['gambar'] = 'images/' . $fileName;
+            $path = $request->file('gambar')->store('images', 'public');
+            $validated['gambar'] = $path;
         }
 
-        Item::create($data);
+        $item = Item::create($validated);
 
-        return redirect()->route('items.index')->with('success', 'Item berhasil ditambahkan.');
+        return redirect()->route('item.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
         $item = Item::findOrFail($id);
-        return view('pages.items.edit', compact('item'));
+        $categories = Category::all();
+        return view('pages.items.edit', compact('item', 'categories'));
     }
 
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'nama_barang' => 'required|string|max:255',
-        'kategori' => 'required|string|max:255',
-        'stok' => 'required|integer',
-        'harga' => 'required|numeric',
-        'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
+    {
+        $validated = $request->validate([
+            'nama_barang' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'stok' => 'required|integer|min:0',
+            'harga' => 'required|numeric|min:0',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-    $item = Item::findOrFail($id);
-    $data = $request->except('gambar');
-
-    if ($request->hasFile('gambar')) {
-        $storagePath = public_path('images');
-        if (!file_exists($storagePath)) {
-            mkdir($storagePath, 0755, true);
+        $item = Item::findOrFail($id);
+        
+        // Handle file upload
+        if ($request->hasFile('gambar')) {
+            // Delete old image if exists
+            if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
+                Storage::disk('public')->delete($item->gambar);
+            }
+            $path = $request->file('gambar')->store('images', 'public');
+            $validated['gambar'] = $path;
+        } else {
+            // Keep existing image if no new file uploaded
+            $validated['gambar'] = $item->gambar;
         }
 
-        $fileName = time() . '_' . $request->file('gambar')->getClientOriginalName();
-        $filePath = $storagePath . '/' . $fileName;
+        $item->update($validated);
 
-        $request->file('gambar')->move($storagePath, $fileName);
-
-        if (!empty($item->gambar) && file_exists(public_path($item->gambar))) {
-            unlink(public_path($item->gambar));
-        }
-
-        $data['gambar'] = 'images/' . $fileName;
-    } else {
-        $data['gambar'] = $item->gambar;
+        return redirect()->route('item.index')->with('success', 'Barang berhasil diperbarui.');
     }
-
-    $item->update($data);
-
-    return redirect()->route('items.index')->with('success', 'Item updated successfully.');
-}
-
 
     public function destroy($id)
     {
         $item = Item::findOrFail($id);
-
-        if ($item->gambar && file_exists(public_path($item->gambar))) {
-            unlink(public_path($item->gambar));
-        }
-
         $item->delete();
 
-        return redirect()->route('items.index')->with('success', 'Item berhasil dihapus.');
+        return redirect()->route('item.index')->with('success', 'Barang berhasil dihapus.');
     }
 }

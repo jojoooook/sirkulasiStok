@@ -12,24 +12,29 @@
                     required>
             </div>
             <div class="mb-3">
-                <label for="kategori" class="form-label">Kategori</label>
-                <input type="text" class="form-control" id="kategori" name="kategori" value="{{ $item->kategori }}"
-                    required>
+                <label for="category_id" class="form-label">Kategori</label>
+                <select class="form-control" id="category_id" name="category_id" required>
+                    <option value="">Pilih Kategori</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ $item->category_id == $category->id ? 'selected' : '' }}>
+                            {{ $category->nama }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             <div class="mb-3">
                 <label for="stok" class="form-label">Stok</label>
-                <input type="number" class="form-control" id="stok" name="stok" value="{{ $item->stok }}" required>
+                <input type="number" class="form-control" id="stok" name="stok" min="0" value="{{ $item->stok }}" required>
             </div>
             <div class="mb-3">
                 <label for="harga" class="form-label">Harga</label>
-                <input type="number" step="0.01" class="form-control" id="harga" name="harga" value="{{ $item->harga }}"
+                <input type="number" class="form-control" id="harga" name="harga" min="0" value="{{ $item->harga }}"
                     required>
             </div>
             <div class="mb-3">
                 <label for="gambar" class="form-label">Gambar</label>
                 <input type="file" class="form-control" id="gambar" name="gambar">
             </div>
-
             <button type="submit" class="btn btn-primary">Update</button>
         </form>
     </div>
