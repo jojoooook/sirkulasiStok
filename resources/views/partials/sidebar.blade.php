@@ -18,7 +18,7 @@
             </a>
         </li>
         <li>
-            <a href="/itementry" class="nav-link text-white">
+            <a href="/stock-entry" class="nav-link text-white">
                 <i class="fas fa-file-alt me-2"></i> Barang Masuk
             </a>
         </li>
