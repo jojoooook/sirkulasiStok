@@ -23,7 +23,7 @@
             </a>
         </li>
         <li>
-            <a href="/barangkeluar" class="nav-link text-white">
+            <a href="/stock-exit" class="nav-link text-white">
                 <i class="fas fa-arrow-alt-circle-right me-2"></i> Barang Keluar
             </a>
         </li>

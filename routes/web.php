@@ -5,6 +5,7 @@ use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\StockEntryController;
+use App\Http\Controllers\StockExitController;
 
 Route::get('/', [HomepageController::class, 'index']);
 // ItemController
@@ -21,3 +22,8 @@ Route::resource('category', CategoryController::class)->except(['show']);
 Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
 Route::get('/stock-entry/create', [StockEntryController::class, 'create'])->name('stock-entry.create');
 Route::post('/stock-entry', [StockEntryController::class, 'store'])->name('stock-entry.store');
+
+// StockExitController (Barang Keluar)
+Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index');
+Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create');
+Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store');
