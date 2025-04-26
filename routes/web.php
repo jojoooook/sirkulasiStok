@@ -5,8 +5,8 @@ use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\StockEntryController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StockExitController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', [HomepageController::class, 'index']);
 // ItemController
@@ -24,18 +24,15 @@ Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-
 Route::get('/stock-entry/create', [StockEntryController::class, 'create'])->name('stock-entry.create');
 Route::post('/stock-entry', [StockEntryController::class, 'store'])->name('stock-entry.store');
 
-// SupplierController
-Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
-
-// Tambahkan ini:
-Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
-Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
-
-
 // StockExitController (Barang Keluar)
 Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index');
 Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create');
 Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store');
+
+// SupplierController
+Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
+Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
+Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
