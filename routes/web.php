@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
@@ -36,3 +37,12 @@ Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.s
 Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
 Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
 Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+
+// OrderController (Order Barang)
+Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier']);
+
+Route::get('/order', [OrderController::class, 'index'])->name('order.index');  
+Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');  
+Route::post('/order', [OrderController::class, 'store'])->name('order.store');  
+Route::patch('/order/{order}/selesai', [OrderController::class, 'selesai'])->name('order.selesai');
+

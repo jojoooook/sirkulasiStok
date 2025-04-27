@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Sirkulasi Stok')</title>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- Bootstrap & Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -93,6 +95,12 @@
     @stack('scripts')
 
     <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         document.getElementById("toggleSidebar")?.addEventListener("click", function () {
             let sidebar = document.getElementById("sidebar");
             if (sidebar.style.display === "none" || sidebar.classList.contains("d-none")) {
