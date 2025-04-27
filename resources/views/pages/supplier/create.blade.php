@@ -4,7 +4,7 @@
 <div class="container">
     <h1 class="mb-4 text-center">Tambah Supplier</h1>
 
-    <form action="{{ route('supplier.store') }}" method="POST">
+    <form action="{{ route('supplier.store') }}" method="POST" id="supplier-form">
         @csrf
 
         <div class="form-group">
@@ -22,7 +22,37 @@
             <input type="text" name="telepon" class="form-control" value="{{ old('telepon') }}" required>
         </div>
 
-        <button type="submit" class="btn btn-success mt-3">Simpan Supplier</button>
+        <button type="submit" class="btn btn-success mt-3" id="submit-button">Simpan Supplier</button>
     </form>
 </div>
 @endsection
+@push('scripts')
+    @if(session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    @endif
+
+    <script>
+        document.getElementById('supplier-form').addEventListener('submit', function (event) {
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('submit-button').innerText = "Sedang Memproses...";
+        });
+    </script>
+@endpush
