@@ -11,12 +11,12 @@ use App\Http\Controllers\SupplierController;
 
 Route::get('/', [HomepageController::class, 'index']);
 // ItemController
-Route::get('/itemlist', [ItemController::class, 'index'])->name('items.index');
-Route::get('/itemlist/create', [ItemController::class, 'create'])->name('item.create');
-Route::post('/itemlist', [ItemController::class, 'store'])->name('item.store');
-Route::get('/itemlist/{id}/edit', [ItemController::class, 'edit'])->name('item.edit');
-Route::put('/itemlist/{id}', [ItemController::class, 'update'])->name('item.update');
-Route::delete('/itemlist/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
+Route::get('/item', [ItemController::class, 'index'])->name('items.index');
+Route::get('/item/create', [ItemController::class, 'create'])->name('item.create');
+Route::post('/item', [ItemController::class, 'store'])->name('item.store');
+Route::get('/item/{id}/edit', [ItemController::class, 'edit'])->name('item.edit');
+Route::put('/item/{id}', [ItemController::class, 'update'])->name('item.update');
+Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
 Route::resource('item', ItemController::class);
 Route::resource('category', CategoryController::class)->except(['show']);
 
