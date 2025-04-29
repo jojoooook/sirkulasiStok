@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Supplier;
 use App\Models\Item;
+use App\Models\StockEntry;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -68,56 +70,57 @@ class OrderController extends Controller
 
     return redirect()->route('order.index')->with('success', 'Order berhasil dibuat.');
     }
-
-
-
-    // Menampilkan form untuk mengedit order
-    public function edit($id)
+    
+    public function complete(Request $request, Order $order)
     {
-        $order = Order::findOrFail($id);
-        $suppliers = Supplier::all();
-        return view('pages.order.edit', compact('order', 'suppliers'));
-    }
-
-    // Menyimpan perubahan data order
-    public function update(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'item_id' => 'required|exists:items,id',
-            'jumlah_order' => 'required|integer|min:1',
+        $request->validate([
+            'jumlah_masuk' => 'required|integer|min:1',  
             'catatan' => 'nullable|string|max:255',
         ]);
 
-        $order->update([
-            'supplier_id' => $validated['supplier_id'],
-            'item_id' => $validated['item_id'],
-            'jumlah_order' => $validated['jumlah_order'],
-            'status_order' => 'pending',  // Bisa diubah menjadi 'selesai' jika perlu
-            'catatan' => $validated['catatan'],
-        ]);
+        $order->status_order = 'selesai';
+        $order->tanggal_selesai = now();  
+        $order->catatan = $request->catatan;  
+        $order->save();  
 
-        return redirect()->route('order.index')->with('success', 'Order berhasil diupdate.');
+        $item = $order->item;  
+        $item->stok += $request->jumlah_masuk;  
+        $item->save();  
+
+        $stockEntry = new StockEntry([
+            'item_id' => $order->item_id,  
+            'stok_masuk' => $request->jumlah_masuk,  
+            'tanggal_masuk' => now(),  
+            'keterangan' => $request->catatan,  
+        ]);
+        $stockEntry->save();  
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil diselesaikan dan stok diperbarui.',
+        ]);
     }
 
-    public function selesai(Order $order)
+    public function cancel(Request $request, $id)
     {
-        // Cek apakah order benar-benar ada
-        if ($order->status_order == 'selesai') {
-            return response()->json(['error' => 'Pesanan sudah selesai.'], 400);
+        $order = Order::findOrFail($id);
+
+        if ($order->status_order !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan tidak dapat dibatalkan, status tidak sesuai.'
+            ]);
         }
 
-        Log::debug('Pesanan yang diterima untuk diselesaikan:', ['order_id' => $order->id, 'status_awal' => $order->status_order]);
-
-        // Mengubah status pesanan
-        $order->status_order = 'selesai';
-        $order->tanggal_selesai = now(); // Menambahkan tanggal selesai
+        $order->status_order = 'dibatalkan'; 
+        $order->catatan = $request->catatan; 
         $order->save();
 
-        Log::debug('Pesanan setelah diupdate:', ['order_id' => $order->id, 'status_baru' => $order->status_order]);
-
-        return response()->json(['success' => 'Order selesai']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil dibatalkan'
+        ]);
     }
+
 
 }

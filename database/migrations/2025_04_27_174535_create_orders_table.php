@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->integer('jumlah_order');
             $table->timestamp('tanggal_order')->useCurrent();
-            $table->enum('status_order', ['pending', 'selesai'])->default('pending');
+            $table->enum('status_order', ['pending', 'dibatalkan', 'selesai'])->default('pending');
             $table->timestamp('tanggal_selesai')->nullable(); 
             $table->text('catatan')->nullable();
             $table->timestamps();

@@ -34,8 +34,10 @@
                                 @if($order->status_order === 'pending')
                                     <button class="btn btn-success selesai-btn" data-id="{{ $order->id }}">Selesaikan
                                         Pesanan</button>
+                                    <button class="btn btn-danger batal-btn" data-id="{{ $order->id }}">Batalkan Pesanan</button>
                                 @else
                                     <button class="btn btn-secondary" disabled>Selesai</button>
+                                    <button class="btn btn-secondary" disabled>Batalkan</button>
                                 @endif
                             </td>
                         </tr>
@@ -48,70 +50,164 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalKonfirmasiSelesai" tabindex="-1" aria-labelledby="modalKonfirmasiSelesaiLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="formSelesaiOrder">
+                @csrf
+                <input type="hidden" name="order_id" id="order_id">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalKonfirmasiSelesaiLabel">Konfirmasi Penyelesaian Pesanan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="jumlah_masuk" class="form-label">Jumlah Barang Masuk</label>
+                            <input type="number" min="1" class="form-control" id="jumlah_masuk" name="jumlah_masuk"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="catatan" class="form-label">Catatan</label>
+                            <textarea class="form-control" id="catatan" name="catatan" rows="3"
+                                placeholder="Opsional"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">Konfirmasi Selesai</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalKonfirmasiBatal" tabindex="-1" aria-labelledby="modalKonfirmasiBatalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="formBatalOrder">
+                @csrf
+                <input type="hidden" name="order_id" id="order_id_batal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalKonfirmasiBatalLabel">Konfirmasi Pembatalan Pesanan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="catatan_batal" class="form-label">Alasan Pembatalan</label>
+                            <textarea class="form-control" id="catatan_batal" name="catatan" rows="3" required
+                                placeholder="Opsional"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Batalkan Pesanan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function () {
-            $('.selesai-btn').on('click', function () {
-                var orderId = $(this).data('id');
+            let selectedOrderId = null;
 
-                // Konfirmasi dengan SweetAlert
+            $('.selesai-btn').on('click', function () {
+                selectedOrderId = $(this).data('id');
+                $('#order_id').val(selectedOrderId);
+                $('#modalKonfirmasiSelesai').modal('show');
+            });
+
+            $('.batal-btn').on('click', function () {
+                selectedOrderId = $(this).data('id');
+                $('#order_id_batal').val(selectedOrderId);
+                $('#modalKonfirmasiBatal').modal('show');
+            });
+
+            // Menangani form submit untuk penyelesaian pesanan
+            $('#formSelesaiOrder').submit(function (e) {
+                e.preventDefault();
+
+                const jumlahMasuk = $('#jumlah_masuk').val();
+                const catatan = $('#catatan').val();
+
                 Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Pesanan ini akan ditandai sebagai selesai.",
-                    icon: 'warning',
+                    title: 'Konfirmasi Akhir',
+                    text: 'Apakah data yang dimasukkan sudah benar?',
+                    icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, Selesai!',
-                    cancelButtonText: 'Batal',
+                    confirmButtonText: 'Ya, Selesaikan',
+                    cancelButtonText: 'Periksa Lagi'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Mengirim request AJAX untuk mengupdate status
                         $.ajax({
-                            url: '/order/' + orderId + '/selesai', // Pastikan URL sesuai
+                            url: '/order/' + selectedOrderId,
                             type: 'PATCH',
-                            dataType: 'json', // Pastikan format JSON
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                jumlah_masuk: jumlahMasuk,
+                                catatan: catatan
+                            },
                             success: function (response) {
-                                // Jika berhasil
                                 if (response.success) {
-                                    Swal.fire(
-                                        'Selesai!',
-                                        'Pesanan telah ditandai sebagai selesai.',
-                                        'success'
-                                    ).then(() => {
-                                        location.reload(); // Refresh halaman setelah status berubah
+                                    Swal.fire('Sukses!', response.message, 'success').then(() => {
+                                        location.reload();
                                     });
+                                } else {
+                                    Swal.fire('Gagal!', response.message, 'error');
                                 }
                             },
-                            error: function (xhr, status, error) {
-                                // Jika gagal
-                                var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Terdapat kesalahan saat menyelesaikan pesanan.';
-                                Swal.fire(
-                                    'Gagal!',
-                                    errorMessage,
-                                    'error'
-                                );
+                            error: function (xhr) {
+                                Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Menangani form submit untuk pembatalan pesanan
+            $('#formBatalOrder').submit(function (e) {
+                e.preventDefault();
+
+                const catatanBatal = $('#catatan_batal').val();
+
+                Swal.fire({
+                    title: 'Konfirmasi Akhir',
+                    text: 'Apakah Anda yakin ingin membatalkan pesanan?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Batalkan',
+                    cancelButtonText: 'Periksa Lagi'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/order/' + selectedOrderId + '/cancel',
+                            type: 'PATCH',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                catatan: catatanBatal
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('Sukses!', response.message, 'success').then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Gagal!', response.message, 'error');
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
                             }
                         });
                     }
                 });
             });
         });
-
-        @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session('success') }}',
-            });
-        @endif
-
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: '{{ session('error') }}',
-            });
-        @endif
     </script>
 @endpush

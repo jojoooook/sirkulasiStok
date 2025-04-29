@@ -44,5 +44,9 @@ Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySuppli
 Route::get('/order', [OrderController::class, 'index'])->name('order.index');  
 Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');  
 Route::post('/order', [OrderController::class, 'store'])->name('order.store');  
-Route::patch('/order/{order}/selesai', [OrderController::class, 'selesai'])->name('order.selesai');
+
+Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
+Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+
+
 
