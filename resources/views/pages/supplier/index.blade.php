@@ -6,6 +6,78 @@
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Daftar Supplier</h1>
 
+    <!-- Form Pencarian -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <form action="{{ route('supplier.index') }}" method="GET" class="d-flex">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control me-2" placeholder="Cari Supplier" value="{{ request('search') }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Cari
+                </button>
+            </div>
+        </form>
+
+        <div class="d-flex gap-2">
+            <a href="{{ route('supplier.create') }}" class="btn btn-primary">
+                + Tambah Supplier
+            </a>
+        </div>
+    </div>
+
+    @php
+        function next_sort_state($column) {
+            $currentSortBy = request('sort_by');
+            $currentSortOrder = request('sort_order');
+
+            if ($currentSortBy !== $column) {
+                return ['sort_by' => $column, 'sort_order' => 'asc'];
+            }
+
+            if ($currentSortOrder === 'asc') {
+                return ['sort_by' => $column, 'sort_order' => 'desc'];
+            }
+
+            // Third click: remove sorting
+            return [];
+        }
+    @endphp
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered shadow-sm">
+            <thead class="thead-light">
+                <tr>
+                <th>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Nama Supplier</span>
+                        @php $nextSort = next_sort_state('nama'); @endphp
+                        <a href="{{ route('supplier.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                            @if(request('sort_by') === 'nama')
+                                <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                            @else
+                                <i class="fas fa-sort"></i>
+                            @endif
+                        </a>
+                    </div>
+                </th>
+                <th>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Alamat</span>
+                        @php $nextSort = next_sort_state('alamat'); @endphp
+                        <a href="{{ route('supplier.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                            @if(request('sort_by') === 'alamat')
+                                <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                            @else
+                                <i class="fas fa-sort"></i>
+                            @endif
+                        </a>
+                    </div>
+                </th>
+                <th>Telepon</th>
+                <th>Aksi</th>
+            </tr>
+            </thead>
+            <tbody>
+                @foreach($suppliers as $supplier)
         <a href="{{ route('supplier.create') }}" class="btn btn-primary mb-3 shadow-sm">
             <i class="fas fa-plus"></i> Tambah Supplier
         </a>

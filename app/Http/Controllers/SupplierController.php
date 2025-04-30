@@ -7,10 +7,26 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::paginate(10);
-        return view('pages.supplier.index', compact('suppliers'));
+        $query = Supplier::query();
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('nama', 'like', "%{$search}%")
+                ->orWhere('alamat', 'like', "%{$search}%")
+                ->orWhere('telepon', 'like', "%{$search}%");
+        }
+
+        
+        // Sorting
+        $sortBy = $request->get('sort_by', 'nama'); // default sort by nama
+        $sortOrder = $request->get('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $suppliers = $query->paginate(10)->appends($request->all());
+
+        return view('pages.supplier.index', compact('suppliers', 'sortBy', 'sortOrder'));
     }
 
     public function create()

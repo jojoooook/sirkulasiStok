@@ -10,12 +10,39 @@ class StockEntryController extends Controller
 {
     // Menampilkan daftar riwayat barang masuk
     public function index()
-{
-    $stockEntries = StockEntry::with('item')
-        ->orderBy('tanggal_masuk', 'desc')
-        ->paginate(10);  
-    return view('pages.stock-entry.index', compact('stockEntries'));
-}
+    {
+        $query = StockEntry::query();
+
+        // Join dengan tabel items agar bisa sort berdasarkan nama_barang
+        $query->join('items', 'stock_entries.item_id', '=', 'items.id')
+            ->select('stock_entries.*'); // penting agar pagination tetap berjalan
+
+        // Pencarian
+        if (request('search')) {
+            $query->where('items.nama_barang', 'like', '%' . request('search') . '%');
+        }
+
+        // Sorting
+        $sortBy = request('sort_by', 'items.nama_barang');
+        $sortOrder = request('sort_order', 'asc');
+
+        // Validasi kolom sort agar aman
+        $sortableColumns = [
+            'items.nama_barang',
+            'stok_masuk',
+            'tanggal_masuk',
+            'keterangan',
+        ];
+
+        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'items.nama_barang';
+
+        $query->orderBy($sortColumn, $sortOrder);
+
+        $stockEntries = $query->with('item')->paginate(10)->appends(request()->except('page'));
+
+        return view('pages.stock-entry.index', compact('stockEntries', 'sortBy', 'sortOrder'));
+    }
+
 
     // Menampilkan form untuk mencatat barang masuk
     public function create()
