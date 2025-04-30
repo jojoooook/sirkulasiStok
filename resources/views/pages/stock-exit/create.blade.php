@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
+@section('title', content: 'Tambah Barang Keluar')
+
 @section('content')
     <div class="container">
-        <h1>Tambah Barang Masuk</h1>
+        <h1>Tambah Barang Keluar</h1>
 
-        <form action="{{ route('stock-entry.store') }}" method="POST" id="stock-entry-form">
+        <form action="{{ route('stock-exit.store') }}" method="POST" id="stock-exit-form">
             @csrf
 
             <div class="form-group">
@@ -28,9 +30,9 @@
             </div>
 
             <div class="form-group">
-                <label for="stok_masuk">Jumlah Stok Masuk</label>
-                <input type="number" name="stok_masuk" id="stok_masuk" class="form-control" value="{{ old('stok_masuk') }}"
-                    required>
+                <label for="stok_keluar">Jumlah Stok Keluar</label>
+                <input type="number" name="stok_keluar" id="stok_keluar" class="form-control"
+                    value="{{ old('stok_keluar') }}" required>
             </div>
 
             <div class="form-group">
@@ -38,7 +40,7 @@
                 <input type="text" name="keterangan" id="keterangan" class="form-control" value="{{ old('keterangan') }}">
             </div>
 
-            <button type="submit" class="btn btn-success mt-3" id="submit-button">Simpan Barang Masuk</button>
+            <button type="submit" class="btn btn-danger mt-3" id="submit-button">Simpan Barang Keluar</button>
         </form>
     </div>
 @endsection
@@ -94,7 +96,7 @@
             });
         });
 
-        document.getElementById('stock-entry-form').addEventListener('submit', function (event) {
+        document.getElementById('stock-exit-form').addEventListener('submit', function (event) {
             document.getElementById('submit-button').disabled = true;
             document.getElementById('submit-button').innerText = "Sedang Memproses...";
         });

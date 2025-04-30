@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Category;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +19,8 @@ class ItemController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('pages.items.create', compact('categories'));
+        $suppliers = Supplier::all();
+        return view('pages.items.create', compact('categories', 'suppliers'));
     }
 
     public function store(Request $request)
@@ -26,6 +28,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -46,7 +49,8 @@ class ItemController extends Controller
     {
         $item = Item::findOrFail($id);
         $categories = Category::all();
-        return view('pages.items.edit', compact('item', 'categories'));
+        $suppliers = Supplier::all();
+        return view('pages.items.edit', compact('item', 'categories', 'suppliers'));
     }
 
     public function update(Request $request, $id)
@@ -54,6 +58,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',

@@ -54,7 +54,6 @@ class SupplierController extends Controller
         return redirect()->route('supplier.index')->with('success', 'Supplier berhasil ditambahkan.');
     }
 
-
     public function edit($id)
     {
         $supplier = Supplier::findOrFail($id);
@@ -78,6 +77,12 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         $supplier = Supplier::findOrFail($id);
+
+        if ($supplier->items()->count() > 0) {
+            return redirect()->route('supplier.index')
+                ->with('error', 'Supplier tidak dapat dihapus karena masih ada barang yang terkait.');
+        }
+
         $supplier->delete();
 
         return redirect()->route('supplier.index')->with('success', 'Supplier berhasil dihapus.');

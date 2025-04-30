@@ -17,10 +17,21 @@ class Item extends Model
         'stok',
         'harga', 
         'gambar',
+        'supplier_id',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class)->withDefault();
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

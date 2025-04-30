@@ -14,4 +14,14 @@ class Supplier extends Model
         'alamat',
         'telepon',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

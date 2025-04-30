@@ -20,6 +20,7 @@ class CreateItemsTable extends Migration
             $table->integer('stok');
             $table->double('harga', 10, 2);
             $table->string('gambar')->nullable();
+            $table->foreignId('supplier_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
