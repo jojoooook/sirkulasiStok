@@ -9,9 +9,9 @@ use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
 
-Route::get('/', [HomepageController::class, 'index']);
+Route::get('/', [HomepageController::class, 'index'])->name('pages.homepage');
 // ItemController
-Route::get('/item', [ItemController::class, 'index'])->name('items.index');
+Route::get('/item', [ItemController::class, 'index'])->name('item.index');
 Route::get('/item/create', [ItemController::class, 'create'])->name('item.create');
 Route::post('/item', [ItemController::class, 'store'])->name('item.store');
 Route::get('/item/{id}/edit', [ItemController::class, 'edit'])->name('item.edit');

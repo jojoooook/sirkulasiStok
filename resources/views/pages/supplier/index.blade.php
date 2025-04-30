@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Daftar Supplier')
+
 @section('content')
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Daftar Supplier</h1>

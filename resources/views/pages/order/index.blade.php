@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', content: 'Riwayat Order Barang')
+
 @section('content')
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Riwayat Order Barang</h1>
