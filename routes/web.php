@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/', [HomepageController::class, 'index'])->name('pages.homepage');
 // ItemController
@@ -48,5 +49,11 @@ Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
 Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 
-
+// SettingController
+Route::get('/setting', [SettingController::class, 'index'])->name('setting.index'); 
+Route::get('/setting/create', [SettingController::class, 'create'])->name('setting.create');
+Route::post('/setting', [SettingController::class, 'store'])->name('setting.store');
+Route::get('/setting/{id}/edit', [SettingController::class, 'edit'])->name('setting.edit');
+Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
+Route::delete('/setting/{id}', [SettingController::class, 'destroy'])->name('setting.destroy');
 

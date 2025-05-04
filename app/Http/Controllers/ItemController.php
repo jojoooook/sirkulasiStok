@@ -14,8 +14,8 @@ class ItemController extends Controller
     {
         $query = Item::with('category');
 
-        // Pencarian
-        if ($request->has('search') && $request->search != '') {
+        // Search
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'like', "%{$search}%")
@@ -28,25 +28,26 @@ class ItemController extends Controller
         }
 
         // Sorting
-        $sortBy = $request->get('sort_by', 'id'); // default sort
+        $sortBy = $request->get('sort_by', 'id');
         $sortOrder = $request->get('sort_order', 'asc');
-
-        // Daftar kolom yang diperbolehkan
         $allowedSorts = ['nama_barang', 'stok', 'harga', 'category.nama'];
 
         if (in_array($sortBy, $allowedSorts)) {
             if ($sortBy === 'category.nama') {
-                // Join ke tabel kategori untuk sorting
                 $query->join('categories', 'items.category_id', '=', 'categories.id')
-                    ->orderBy('categories.nama', $sortOrder)
-                    ->select('items.*'); // Harus select items.* agar tidak bentrok
+                      ->orderBy('categories.nama', $sortOrder)
+                      ->select('items.*');
             } else {
                 $query->orderBy($sortBy, $sortOrder);
             }
         }
 
-        // Pagination + keep query string
         $items = $query->paginate(10)->appends($request->all());
+
+        // Untuk AJAX (Live Search)
+        if ($request->ajax()) {
+            return view('pages.items._table', compact('items'))->render();
+        }
 
         return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
@@ -69,13 +70,11 @@ class ItemController extends Controller
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Handle file upload first
         if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('images', 'public');
-            $validated['gambar'] = $path;
+            $validated['gambar'] = $request->file('gambar')->store('images', 'public');
         }
 
-        $item = Item::create($validated);
+        Item::create($validated);
 
         return redirect()->route('item.index')->with('success', 'Barang berhasil ditambahkan.');
     }
@@ -100,17 +99,14 @@ class ItemController extends Controller
         ]);
 
         $item = Item::findOrFail($id);
-        
-        // Handle file upload
+
         if ($request->hasFile('gambar')) {
-            // Delete old image if exists
             if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
                 Storage::disk('public')->delete($item->gambar);
             }
-            $path = $request->file('gambar')->store('images', 'public');
-            $validated['gambar'] = $path;
+
+            $validated['gambar'] = $request->file('gambar')->store('images', 'public');
         } else {
-            // Keep existing image if no new file uploaded
             $validated['gambar'] = $item->gambar;
         }
 
@@ -122,6 +118,11 @@ class ItemController extends Controller
     public function destroy($id)
     {
         $item = Item::findOrFail($id);
+
+        if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
+            Storage::disk('public')->delete($item->gambar);
+        }
+
         $item->delete();
 
         return redirect()->route('item.index')->with('success', 'Barang berhasil dihapus.');

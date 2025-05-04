@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <form action="{{ route('item.index') }}" method="GET" class="d-flex">
             <div class="input-group">
-                <input type="text" name="search" class="form-control me-2" placeholder="Cari Barang" value="{{ request('search') }}">
+            <input type="text" id="searchInput" name="search" class="form-control me-2" placeholder="Cari Barang" value="{{ request('search') }}">
                 <button class="btn btn-primary" type="submit">
                     <i class="fas fa-search"></i> Cari
                 </button>
@@ -41,7 +41,7 @@
     @endphp
 
     <!-- Table -->
-    <div class="table-responsive">
+    <div class="table-wrapper">
         <table class="table table-bordered table-hover text-center align-middle">
             <thead class="table-light">
                 <tr>
@@ -196,6 +196,20 @@
         const modalImage = imageModal.querySelector('#modalImage');
         modalImage.src = imageUrl;
     });
+
+    // Submit otomatis saat mengetik di input search
+    let searchTimeout;
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm = searchInput.closest('form');
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchForm.submit();
+        }, 500); // Delay 500ms setelah berhenti mengetik
+    });
+
+
 
     // Flash message alert
     @if(session('success'))
