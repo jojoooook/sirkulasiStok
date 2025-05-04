@@ -10,10 +10,45 @@ use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $items = Item::with('category')->paginate(10);
-        return view('pages.items.index', compact('items'));
+        $query = Item::with('category');
+
+        // Pencarian
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'like', "%{$search}%")
+                    ->orWhere('stok', 'like', "%{$search}%")
+                    ->orWhere('harga', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q2) use ($search) {
+                        $q2->where('nama', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'id'); // default sort
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // Daftar kolom yang diperbolehkan
+        $allowedSorts = ['nama_barang', 'stok', 'harga', 'category.nama'];
+
+        if (in_array($sortBy, $allowedSorts)) {
+            if ($sortBy === 'category.nama') {
+                // Join ke tabel kategori untuk sorting
+                $query->join('categories', 'items.category_id', '=', 'categories.id')
+                    ->orderBy('categories.nama', $sortOrder)
+                    ->select('items.*'); // Harus select items.* agar tidak bentrok
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        }
+
+        // Pagination + keep query string
+        $items = $query->paginate(10)->appends($request->all());
+
+        return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
 
     public function create()
