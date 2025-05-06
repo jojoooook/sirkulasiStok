@@ -9,13 +9,41 @@ use Illuminate\Http\Request;
 class StockExitController extends Controller
 {
     // Menampilkan daftar riwayat barang keluar
-    public function index()
+    public function index(Request $request)
     {
-        $stockExits = StockExit::with('item')
-            ->orderBy('tanggal_keluar', 'desc')
-            ->paginate(10);  
-        return view('pages.stock-exit.index', compact('stockExits'));
+        $query = StockExit::query();
+
+        // Join dengan tabel items agar bisa sort berdasarkan nama_barang
+        $query->join('items', 'stock_exits.item_id', '=', 'items.id')
+            ->select('stock_exits.*'); // penting agar pagination tetap berjalan
+
+        // Pencarian
+        if ($request->has('search') && $request->search != '') {
+            $query->where('items.nama_barang', 'like', '%' . $request->search . '%');
+        }
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'tanggal_keluar'); // default diubah ke tanggal_keluar
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        // Validasi kolom sort agar aman
+        $sortableColumns = [
+            'items.nama_barang',
+            'stok_keluar',
+            'tanggal_keluar',
+            'keterangan',
+        ];
+
+        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'items.nama_barang';
+
+        $query->orderBy($sortColumn, $sortOrder);
+
+        // Pagination dan appends untuk menjaga parameter query di URL
+        $stockExits = $query->with('item')->paginate(10)->appends($request->except('page'));
+
+        return view('pages.stock-exit.index', compact('stockExits', 'sortBy', 'sortOrder'));
     }
+
 
     // Menampilkan form untuk mencatat barang keluar
     public function create()

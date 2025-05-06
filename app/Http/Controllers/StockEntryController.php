@@ -23,8 +23,8 @@ class StockEntryController extends Controller
         }
 
         // Sorting
-        $sortBy = request('sort_by', 'items.nama_barang');
-        $sortOrder = request('sort_order', 'asc');
+        $sortBy = request('sort_by', 'tanggal_masuk'); // default diubah ke tanggal_masuk
+        $sortOrder = request('sort_order', 'desc');
 
         // Validasi kolom sort agar aman
         $sortableColumns = [

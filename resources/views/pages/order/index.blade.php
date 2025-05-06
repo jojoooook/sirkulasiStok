@@ -5,20 +5,103 @@
 @section('content')
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Riwayat Order Barang</h1>
+        
+         <!-- Form Search & Tambah Order -->
+         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <form action="{{ route('order.index') }}" method="GET" class="d-flex">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Cari supplier/barang"
+                        value="{{ request('search') }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
+            </form>
+            <a href="{{ route('order.create') }}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus"></i> Tambah Order
+            </a>
+        </div>
 
-        <a href="{{ route('order.create') }}" class="btn btn-primary mb-3 shadow-sm">
-            <i class="fas fa-plus"></i> Tambah Order
-        </a>
+        @php
+            function next_sort_state($column) {
+                $currentSortBy = request('sort_by');
+                $currentSortOrder = request('sort_order');
+
+                if ($currentSortBy !== $column) return ['sort_by' => $column, 'sort_order' => 'asc'];
+                if ($currentSortOrder === 'asc') return ['sort_by' => $column, 'sort_order' => 'desc'];
+                return [];
+            }
+        @endphp
 
         <div class="table-responsive">
             <table class="table table-hover table-bordered shadow-sm">
                 <thead class="thead-light">
                     <tr>
-                        <th>Supplier</th>
-                        <th>Nama Barang</th>
-                        <th>Jumlah Order</th>
-                        <th>Tanggal Order</th>
-                        <th>Status</th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Supplier</span>
+                                @php $nextSort = next_sort_state('supplier.nama'); @endphp
+                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'supplier.nama')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Nama Barang</span>
+                                @php $nextSort = next_sort_state('item.nama_barang'); @endphp
+                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'item.nama_barang')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Jumlah Order</span>
+                                @php $nextSort = next_sort_state('jumlah_order'); @endphp
+                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'jumlah_order')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Tanggal Order</span>
+                                @php $nextSort = next_sort_state('tanggal_order'); @endphp
+                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'tanggal_order')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Status</span>
+                                @php $nextSort = next_sort_state('status_order'); @endphp
+                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'status_order')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
                         <th>Catatan</th>
                         <th>Aksi</th>
                     </tr>

@@ -18,14 +18,54 @@ class OrderController extends Controller
         $items = Item::where('supplier_id', $supplierId)->get(['id', 'nama_barang']);
         return response()->json($items);
     }
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['supplier', 'item'])
-            ->orderBy('tanggal_order', 'desc')
-            ->paginate(10);  // Menggunakan paginate untuk daftar order
+        $query = Order::with(['supplier', 'item']);
+
+        // Pencarian berdasarkan supplier atau nama barang
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->whereHas('supplier', function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%');
+            })->orWhereHas('item', function ($q) use ($search) {
+                $q->where('nama_barang', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'tanggal_order'); // default: tanggal_order
+        $sortOrder = $request->get('sort_order', 'desc');    // default: desc
+
+        // Validasi kolom sort yang diizinkan
+        $allowedSorts = [
+            'tanggal_order',
+            'jumlah_order',
+            'status_order',
+            'supplier.nama',
+            'item.nama_barang',
+        ];
+
+        if (in_array($sortBy, $allowedSorts)) {
+            // Jika sortBy adalah relasi, gunakan join
+            if ($sortBy === 'supplier.nama') {
+                $query->join('suppliers', 'orders.supplier_id', '=', 'suppliers.id')
+                    ->orderBy('suppliers.nama', $sortOrder)
+                    ->select('orders.*');
+            } elseif ($sortBy === 'item.nama_barang') {
+                $query->join('items', 'orders.item_id', '=', 'items.id')
+                    ->orderBy('items.nama_barang', $sortOrder)
+                    ->select('orders.*');
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        }
+
+        // Pagination
+        $orders = $query->paginate(10)->appends($request->query());
 
         return view('pages.order.index', compact('orders'));
     }
+
 
     // Menampilkan form untuk membuat order
     public function create()
