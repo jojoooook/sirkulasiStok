@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', content: 'Riwayat Order Barang')
+@section('title', 'Riwayat Order Barang')
 
 @section('content')
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Riwayat Order Barang</h1>
-        
-         <!-- Form Search & Tambah Order -->
-         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+        <!-- Form Search & Tambah Order -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <form action="{{ route('order.index') }}" method="GET" class="d-flex">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" placeholder="Cari supplier/barang"
@@ -23,12 +23,15 @@
         </div>
 
         @php
-            function next_sort_state($column) {
+            function next_sort_state($column)
+            {
                 $currentSortBy = request('sort_by');
                 $currentSortOrder = request('sort_order');
 
-                if ($currentSortBy !== $column) return ['sort_by' => $column, 'sort_order' => 'asc'];
-                if ($currentSortOrder === 'asc') return ['sort_by' => $column, 'sort_order' => 'desc'];
+                if ($currentSortBy !== $column)
+                    return ['sort_by' => $column, 'sort_order' => 'asc'];
+                if ($currentSortOrder === 'asc')
+                    return ['sort_by' => $column, 'sort_order' => 'desc'];
                 return [];
             }
         @endphp
@@ -39,9 +42,24 @@
                     <tr>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Nomor Nota</span>
+                                @php $nextSort = next_sort_state('nomor_nota'); @endphp
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'nomor_nota')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Supplier</span>
                                 @php $nextSort = next_sort_state('supplier.nama'); @endphp
-                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'supplier.nama')
                                         <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                     @else
@@ -54,7 +72,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Nama Barang</span>
                                 @php $nextSort = next_sort_state('item.nama_barang'); @endphp
-                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'item.nama_barang')
                                         <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                     @else
@@ -67,7 +86,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Jumlah Order</span>
                                 @php $nextSort = next_sort_state('jumlah_order'); @endphp
-                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'jumlah_order')
                                         <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                     @else
@@ -80,7 +100,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Tanggal Order</span>
                                 @php $nextSort = next_sort_state('tanggal_order'); @endphp
-                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'tanggal_order')
                                         <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                     @else
@@ -93,7 +114,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Status</span>
                                 @php $nextSort = next_sort_state('status_order'); @endphp
-                                <a href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                <a
+                                    href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'status_order')
                                         <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                     @else
@@ -109,6 +131,7 @@
                 <tbody>
                     @foreach($orders as $order)
                         <tr>
+                            <td>{{ $order->nomor_nota }}</td>
                             <td>{{ $order->supplier->nama }}</td>
                             <td>{{ $order->item->nama_barang }}</td>
                             <td>{{ $order->jumlah_order }}</td>
@@ -182,7 +205,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="catatan_batal" class="form-label">Alasan Pembatalan</label>
-                            <textarea class="form-control" id="catatan_batal" name="catatan" rows="3" required
+                            <textarea class="form-control" id="catatan_batal" name="catatan" rows="3"
                                 placeholder="Opsional"></textarea>
                         </div>
                     </div>
@@ -214,7 +237,7 @@
                 $('#modalKonfirmasiBatal').modal('show');
             });
 
-            // Menangani form submit untuk penyelesaian pesanan
+            // Handling form submission for completing an order
             $('#formSelesaiOrder').submit(function (e) {
                 e.preventDefault();
 
@@ -255,7 +278,7 @@
                 });
             });
 
-            // Menangani form submit untuk pembatalan pesanan
+            // Handling form submission for canceling an order
             $('#formBatalOrder').submit(function (e) {
                 e.preventDefault();
 

@@ -38,6 +38,7 @@ class SupplierController extends Controller
     {
         // Validasi data
         $request->validate([
+            'kode_supplier' => 'required|string|max:255|unique:suppliers,kode_supplier',
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
             'telepon' => 'required|string|max:20',
@@ -45,6 +46,7 @@ class SupplierController extends Controller
 
         // Simpan data
         Supplier::create([
+            'kode_supplier' => $request->kode_supplier,
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'telepon' => $request->telepon,
@@ -54,29 +56,30 @@ class SupplierController extends Controller
         return redirect()->route('supplier.index')->with('success', 'Supplier berhasil ditambahkan.');
     }
 
-    public function edit($id)
+    public function edit($kode_supplier)
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier = Supplier::findOrFail($kode_supplier);
         return view('pages.supplier.edit', compact('supplier'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $kode_supplier)
     {
         $request->validate([
+            'kode_supplier' => 'required|string|max:255|unique:suppliers,kode_supplier,' . $kode_supplier . ',kode_supplier',
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
             'telepon' => 'required|string|max:20',
         ]);
 
-        $supplier = Supplier::findOrFail($id);
+        $supplier = Supplier::findOrFail($kode_supplier);
         $supplier->update($request->all());
 
         return redirect()->route('supplier.index')->with('success', 'Supplier berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy($kode_supplier)
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier = Supplier::findOrFail($kode_supplier);
 
         if ($supplier->items()->count() > 0) {
             return redirect()->route('supplier.index')

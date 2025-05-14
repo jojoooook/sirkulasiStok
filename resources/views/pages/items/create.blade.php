@@ -8,6 +8,10 @@
         <form action="{{ route('item.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
+                <label for="kode_barang" class="form-label">Kode Barang</label>
+                <input type="text" class="form-control" id="kode_barang" name="kode_barang" required>
+            </div>
+            <div class="mb-3">
                 <label for="nama_barang" class="form-label">Nama Barang</label>
                 <input type="text" class="form-control" id="nama_barang" name="nama_barang" required>
             </div>
@@ -27,7 +31,7 @@
                 <select class="form-control" id="supplier_id" name="supplier_id">
                     <option value="">Pilih Supplier</option>
                     @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                        <option value="{{ $supplier->kode_supplier }}">{{ $supplier->nama }}</option>
                     @endforeach
                 </select>
             </div>

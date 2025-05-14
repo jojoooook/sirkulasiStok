@@ -8,15 +8,20 @@
             @csrf
 
             <div class="form-group">
-                <label for="item_id">Barang</label>
-                <select name="item_id" id="item_id" class="form-control" required>
+                <label for="kode_barang">Barang</label>
+                <select name="kode_barang" id="kode_barang" class="form-control select2" required>
                     <option value="">Pilih Barang</option>
                     @foreach($items as $item)
-                        <option value="{{ $item->id }}" {{ old('item_id') == $item->id ? 'selected' : '' }}>
-                            {{ $item->nama_barang }}
+                        <option value="{{ $item->kode_barang }}" {{ old('kode_barang') == $item->kode_barang ? 'selected' : '' }}>
+                            {{ $item->kode_barang }} - {{ $item->nama_barang }}
                         </option>
                     @endforeach
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="nomor_nota">Nomor Nota</label>
+                <input type="text" name="nomor_nota" id="nomor_nota" class="form-control" maxlength="255"
+                    value="{{ old('nomor_nota') }}">
             </div>
 
             <!-- Menampilkan gambar barang setelah dipilih, tampilkan di atas input -->
@@ -68,28 +73,26 @@
 
     <script>
         $(document).ready(function () {
-            $('#item_id').select2({
+            $('#kode_barang').select2({
                 placeholder: "Pilih Barang",
                 allowClear: true
             });
 
-            // Ketika item dipilih, tampilkan gambar barang
-            $('#item_id').change(function () {
-                var itemId = $(this).val();
-                if (itemId) {
-                    // Cari item berdasarkan id dan tampilkan gambar
-                    var item = @json($items); // Convert $items ke JavaScript
-                    var selectedItem = item.find(i => i.id == itemId);
+            // Ketika barang dipilih, tampilkan gambar barang
+            $('#kode_barang').change(function () {
+                var kodeBarang = $(this).val();
+                if (kodeBarang) {
+                    var items = @json($items);
+                    var selectedItem = items.find(i => i.kode_barang === kodeBarang);
 
                     if (selectedItem && selectedItem.gambar) {
-                        // Menampilkan gambar dengan URL yang benar
                         $('#item_image').attr('src', '/storage/' + selectedItem.gambar);
-                        $('#item-image-container').show(); // Tampilkan gambar
+                        $('#item-image-container').show();
                     } else {
-                        $('#item-image-container').hide(); // Sembunyikan gambar jika tidak ada
+                        $('#item-image-container').hide();
                     }
                 } else {
-                    $('#item-image-container').hide(); // Sembunyikan gambar jika tidak ada pilihan
+                    $('#item-image-container').hide();
                 }
             });
         });

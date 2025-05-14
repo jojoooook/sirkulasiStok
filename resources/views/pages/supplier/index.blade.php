@@ -50,6 +50,20 @@
                     <tr>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
+                                <span>Kode Supplier</span>
+                                @php $nextSort = next_sort_state('kode_supplier'); @endphp
+                                <a
+                                    href="{{ route('supplier.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'kode_supplier')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
                                 <span>Nama Supplier</span>
                                 @php $nextSort = next_sort_state('nama'); @endphp
                                 <a
@@ -83,20 +97,22 @@
                 <tbody>
                     @foreach($suppliers as $supplier)
                         <tr>
+                            <td>{{ $supplier->kode_supplier }}</td>
                             <td>{{ $supplier->nama }}</td>
                             <td>{{ $supplier->alamat }}</td>
                             <td>{{ $supplier->telepon }}</td>
                             <td>
-                                <a href="{{ route('supplier.edit', $supplier->id) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('supplier.edit', $supplier->kode_supplier) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
 
-                                <form id="delete-form-{{ $supplier->id }}"
-                                    action="{{ route('supplier.destroy', $supplier->id) }}" method="POST" class="d-inline">
+                                <form id="delete-form-{{ $supplier->kode_supplier }}"
+                                    action="{{ route('supplier.destroy', $supplier->kode_supplier) }}" method="POST"
+                                    class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="button" class="btn btn-danger btn-sm"
-                                        onclick="confirmDelete({{ $supplier->id }})">
+                                        onclick="confirmDelete('{{ $supplier->kode_supplier }}')">
                                         <i class="fas fa-trash"></i> Hapus
                                     </button>
                                 </form>

@@ -14,13 +14,14 @@ class CreateItemsTable extends Migration
     public function up()
     {
         Schema::create('items', function (Blueprint $table) {
-            $table->id();
+            $table->string('kode_barang')->primary();
             $table->string('nama_barang');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->integer('stok');
             $table->double('harga', 10, 2);
             $table->string('gambar')->nullable();
-            $table->foreignId('supplier_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('supplier_id')->nullable();
+            $table->foreign('supplier_id')->references('kode_supplier')->on('suppliers')->onDelete('set null');
             $table->timestamps();
         });
     }

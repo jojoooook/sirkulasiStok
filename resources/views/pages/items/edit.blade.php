@@ -1,11 +1,19 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Barang')
+
 @section('content')
     <div class="container">
         <h1>Edit Barang</h1>
-        <form action="{{ route('item.update', $item->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('item.update', $item->kode_barang) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+
+            <div class="mb-3">
+                <label for="kode_barang" class="form-label">Kode Barang</label>
+                <input type="text" class="form-control" id="kode_barang" name="kode_barang" value="{{ $item->kode_barang }}"
+                    required>
+            </div>
 
             <div class="mb-3">
                 <label for="nama_barang" class="form-label">Nama Barang</label>
@@ -30,7 +38,7 @@
                 <select class="form-control" id="supplier_id" name="supplier_id">
                     <option value="">Pilih Supplier</option>
                     @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}" {{ $item->supplier_id == $supplier->id ? 'selected' : '' }}>
+                        <option value="{{ $supplier->kode_supplier }}" {{ $item->supplier_id == $supplier->kode_supplier ? 'selected' : '' }}>
                             {{ $supplier->nama }}
                         </option>
                     @endforeach

@@ -28,9 +28,9 @@ class ItemController extends Controller
         }
 
         // Sorting
-        $sortBy = $request->get('sort_by', 'id');
+        $sortBy = $request->get('sort_by', 'kode_barang');
         $sortOrder = $request->get('sort_order', 'asc');
-        $allowedSorts = ['nama_barang', 'stok', 'harga', 'category.nama'];
+        $allowedSorts = ['kode_barang', 'nama_barang', 'stok', 'harga', 'category.nama'];
 
         if (in_array($sortBy, $allowedSorts)) {
             if ($sortBy === 'category.nama') {
@@ -62,9 +62,10 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'kode_barang' => 'required|string|max:255|unique:items,kode_barang',
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -79,26 +80,28 @@ class ItemController extends Controller
         return redirect()->route('item.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
-    public function edit($id)
+    public function edit($kode_barang)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
         $categories = Category::all();
         $suppliers = Supplier::all();
         return view('pages.items.edit', compact('item', 'categories', 'suppliers'));
     }
 
-    public function update(Request $request, $id)
+
+    public function update(Request $request, $kode_barang)
     {
         $validated = $request->validate([
+            'kode_barang' => 'required|string|max:255|unique:items,kode_barang,' . $kode_barang . ',kode_barang',
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
 
         if ($request->hasFile('gambar')) {
             if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
@@ -115,9 +118,9 @@ class ItemController extends Controller
         return redirect()->route('item.index')->with('success', 'Barang berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy($kode_barang)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
 
         if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
             Storage::disk('public')->delete($item->gambar);
