@@ -125,28 +125,28 @@
             $('#add-item').on('click', function () {
                 itemCount++;
                 let newItem = `
-                                                                        <div class="order-item-container card p-3 mb-3">
-                                                                            <div class="row">
-                                                                                <div class="col-md-6">
-                                                                                    <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
-                                                                                    <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
-                                                                                        <option value="">Pilih Barang</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                    <label for="jumlah_order" class="form-label">Jumlah Order</label>
-                                                                                    <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                    <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
-                                                                                    <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
-                                                                                </div>
-                                                                                <div class="col-md-2 d-flex align-items-end">
-                                                                                    <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    `;
+                                                                                        <div class="order-item-container card p-3 mb-3">
+                                                                                            <div class="row">
+                                                                                                <div class="col-md-6">
+                                                                                                    <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
+                                                                                                    <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
+                                                                                                        <option value="">Pilih Barang</option>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                                <div class="col-md-4">
+                                                                                                    <label for="jumlah_order" class="form-label">Jumlah Order</label>
+                                                                                                    <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
+                                                                                                </div>
+                                                                                                <div class="col-md-4">
+                                                                                                    <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
+                                                                                                    <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
+                                                                                                </div>
+                                                                                                <div class="col-md-2 d-flex align-items-end">
+                                                                                                    <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    `;
                 $('#order-items').append(newItem);
 
                 // Reinitialize select2 pada item baru

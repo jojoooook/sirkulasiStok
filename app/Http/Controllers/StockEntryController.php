@@ -64,7 +64,7 @@ class StockEntryController extends Controller
 
         // Jika nomor_nota diisi, cek apakah ada di tabel transaction
         if (!empty($validated['nomor_nota'])) {
-            $exists = \App\Models\Transaction::where('nomor_nota', $validated['nomor_nota'])->exists();
+            $exists = Transaction::where('nomor_nota', $validated['nomor_nota'])->exists();
             if (!$exists) {
                 return redirect()->back()->withInput()->withErrors(['nomor_nota' => 'Nomor nota tidak ditemukan di tabel transaksi.']);
             }

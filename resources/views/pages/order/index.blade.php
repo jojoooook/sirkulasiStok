@@ -21,10 +21,6 @@
                 <a href="{{ route('order.create') }}" class="btn btn-primary shadow-sm">
                     <i class="fas fa-plus"></i> Tambah Order
                 </a>
-                <button type="button" class="btn btn-secondary shadow-sm" data-bs-toggle="modal"
-                    data-bs-target="#modalTambahInvoice">
-                    <i class="fas fa-file-invoice"></i> Tambah Nomor Nota
-                </button>
                 <a href="{{ route('nota.index') }}" class="btn btn-info shadow-sm">
                     <i class="fas fa-clipboard-list"></i> Kelola Nota
                 </a>
@@ -233,43 +229,6 @@
             </div>
 
 @endsection
-
-        <!-- Modal Tambah Nomor Nota -->
-        <div class="modal fade" id="modalTambahInvoice" tabindex="-1" aria-labelledby="modalTambahInvoiceLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <form action="{{ route('order.addInvoice') }}" method="POST">
-                    @csrf
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalTambahInvoiceLabel">Tambah Nomor Nota Baru</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            @if(session('success'))
-                                <div class="alert alert-success">{{ session('success') }}</div>
-                            @endif
-                            @if(session('error'))
-                                <div class="alert alert-danger">{{ session('error') }}</div>
-                            @endif
-                            <div class="mb-3">
-                                <label for="nomor_nota" class="form-label">Nomor Nota</label>
-                                <input type="text" class="form-control @error('nomor_nota') is-invalid @enderror"
-                                    id="nomor_nota" name="nomor_nota" required>
-                                @error('nomor_nota')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Tambah</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         @push('scripts')
             <script>
                 $(document).ready(function () {
