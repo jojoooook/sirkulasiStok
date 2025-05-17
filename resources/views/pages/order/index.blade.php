@@ -17,9 +17,18 @@
                     </button>
                 </div>
             </form>
-            <a href="{{ route('order.create') }}" class="btn btn-primary shadow-sm">
-                <i class="fas fa-plus"></i> Tambah Order
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('order.create') }}" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-plus"></i> Tambah Order
+                </a>
+                <button type="button" class="btn btn-secondary shadow-sm" data-bs-toggle="modal"
+                    data-bs-target="#modalTambahInvoice">
+                    <i class="fas fa-file-invoice"></i> Tambah Nomor Nota
+                </button>
+                <a href="{{ route('nota.index') }}" class="btn btn-info shadow-sm">
+                    <i class="fas fa-clipboard-list"></i> Kelola Nota
+                </a>
+            </div>
         </div>
 
         @php
@@ -37,7 +46,7 @@
         @endphp
 
         <div class="table-responsive">
-            <table class="table table-hover table-bordered shadow-sm">
+            <table class="table table-hover table-bordered shadow-sm table-sm">
                 <thead class="thead-light">
                     <tr>
                         <th>
@@ -68,7 +77,12 @@
                                 </a>
                             </div>
                         </th>
-                        <th>
+                        <th style="min-width: 120px;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Kode Barang</span>
+                            </div>
+                        </th>
+                        <th style="min-width: 150px;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Nama Barang</span>
                                 @php $nextSort = next_sort_state('item.nama_barang'); @endphp
@@ -82,9 +96,9 @@
                                 </a>
                             </div>
                         </th>
-                        <th>
+                        <th style="width: 90px;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="mx-auto">Jumlah Order</span>
+                                <span class="mx-auto">Jumlah</span>
                                 @php $nextSort = next_sort_state('jumlah_order'); @endphp
                                 <a
                                     href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
@@ -96,9 +110,9 @@
                                 </a>
                             </div>
                         </th>
-                        <th>
+                        <th style="width: 110px;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="mx-auto">Tanggal Order</span>
+                                <span class="mx-auto">Tanggal</span>
                                 @php $nextSort = next_sort_state('tanggal_order'); @endphp
                                 <a
                                     href="{{ route('order.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
@@ -110,7 +124,7 @@
                                 </a>
                             </div>
                         </th>
-                        <th>
+                        <th style="min-width: 110px;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="mx-auto">Status</span>
                                 @php $nextSort = next_sort_state('status_order'); @endphp
@@ -124,8 +138,8 @@
                                 </a>
                             </div>
                         </th>
-                        <th>Catatan</th>
-                        <th>Aksi</th>
+                        <th style="min-width: 150px;">Catatan</th>
+                        <th style="min-width: 150px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -133,9 +147,10 @@
                         <tr>
                             <td>{{ $order->nomor_nota }}</td>
                             <td>{{ $order->supplier->nama }}</td>
+                            <td>{{ $order->item->kode_barang }}</td>
                             <td>{{ $order->item->nama_barang }}</td>
                             <td>{{ $order->jumlah_order }}</td>
-                            <td>{{ $order->tanggal_order }}</td>
+                            <td>{{ \Carbon\Carbon::parse($order->tanggal_order)->format('Y-m-d') }}</td>
                             <td>{{ $order->status_order }}</td>
                             <td>{{ $order->catatan }}</td>
                             <td>
@@ -156,166 +171,201 @@
             <div class="d-flex justify-content-center">
                 {!! $orders->links('pagination::bootstrap-4') !!}
             </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="modalKonfirmasiSelesai" tabindex="-1" aria-labelledby="modalKonfirmasiSelesaiLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="formSelesaiOrder">
-                @csrf
-                <input type="hidden" name="order_id" id="order_id">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalKonfirmasiSelesaiLabel">Konfirmasi Penyelesaian Pesanan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="jumlah_masuk" class="form-label">Jumlah Barang Masuk</label>
-                            <input type="number" min="1" class="form-control" id="jumlah_masuk" name="jumlah_masuk"
-                                required>
+            <div class="modal fade" id="modalKonfirmasiSelesai" tabindex="-1" aria-labelledby="modalKonfirmasiSelesaiLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <form id="formSelesaiOrder">
+                        @csrf
+                        <input type="hidden" name="order_id" id="order_id">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalKonfirmasiSelesaiLabel">Konfirmasi Penyelesaian Pesanan
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="jumlah_masuk" class="form-label">Jumlah Barang Masuk</label>
+                                    <input type="number" min="1" class="form-control" id="jumlah_masuk" name="jumlah_masuk"
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="catatan" class="form-label">Catatan</label>
+                                    <textarea class="form-control" id="catatan" name="catatan" rows="3"
+                                        placeholder="Opsional"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-success">Konfirmasi Selesai</button>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="catatan" class="form-label">Catatan</label>
-                            <textarea class="form-control" id="catatan" name="catatan" rows="3"
-                                placeholder="Opsional"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success">Konfirmasi Selesai</button>
-                    </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
 
-    <div class="modal fade" id="modalKonfirmasiBatal" tabindex="-1" aria-labelledby="modalKonfirmasiBatalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="formBatalOrder">
-                @csrf
-                <input type="hidden" name="order_id" id="order_id_batal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalKonfirmasiBatalLabel">Konfirmasi Pembatalan Pesanan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="catatan_batal" class="form-label">Alasan Pembatalan</label>
-                            <textarea class="form-control" id="catatan_batal" name="catatan" rows="3"
-                                placeholder="Opsional"></textarea>
+            <div class="modal fade" id="modalKonfirmasiBatal" tabindex="-1" aria-labelledby="modalKonfirmasiBatalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <form id="formBatalOrder">
+                        @csrf
+                        <input type="hidden" name="order_id" id="order_id_batal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalKonfirmasiBatalLabel">Konfirmasi Pembatalan Pesanan</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="catatan_batal" class="form-label">Alasan Pembatalan</label>
+                                    <textarea class="form-control" id="catatan_batal" name="catatan" rows="3"
+                                        placeholder="Opsional"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-danger">Batalkan Pesanan</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger">Batalkan Pesanan</button>
-                    </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
 
 @endsection
 
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            let selectedOrderId = null;
+        <!-- Modal Tambah Nomor Nota -->
+        <div class="modal fade" id="modalTambahInvoice" tabindex="-1" aria-labelledby="modalTambahInvoiceLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="{{ route('order.addInvoice') }}" method="POST">
+                    @csrf
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTambahInvoiceLabel">Tambah Nomor Nota Baru</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if(session('success'))
+                                <div class="alert alert-success">{{ session('success') }}</div>
+                            @endif
+                            @if(session('error'))
+                                <div class="alert alert-danger">{{ session('error') }}</div>
+                            @endif
+                            <div class="mb-3">
+                                <label for="nomor_nota" class="form-label">Nomor Nota</label>
+                                <input type="text" class="form-control @error('nomor_nota') is-invalid @enderror"
+                                    id="nomor_nota" name="nomor_nota" required>
+                                @error('nomor_nota')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Tambah</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            $('.selesai-btn').on('click', function () {
-                selectedOrderId = $(this).data('id');
-                $('#order_id').val(selectedOrderId);
-                $('#modalKonfirmasiSelesai').modal('show');
-            });
+        @push('scripts')
+            <script>
+                $(document).ready(function () {
+                    let selectedOrderId = null;
 
-            $('.batal-btn').on('click', function () {
-                selectedOrderId = $(this).data('id');
-                $('#order_id_batal').val(selectedOrderId);
-                $('#modalKonfirmasiBatal').modal('show');
-            });
+                    $('.selesai-btn').on('click', function () {
+                        selectedOrderId = $(this).data('id');
+                        $('#order_id').val(selectedOrderId);
+                        $('#modalKonfirmasiSelesai').modal('show');
+                    });
 
-            // Handling form submission for completing an order
-            $('#formSelesaiOrder').submit(function (e) {
-                e.preventDefault();
+                    $('.batal-btn').on('click', function () {
+                        selectedOrderId = $(this).data('id');
+                        $('#order_id_batal').val(selectedOrderId);
+                        $('#modalKonfirmasiBatal').modal('show');
+                    });
 
-                const jumlahMasuk = $('#jumlah_masuk').val();
-                const catatan = $('#catatan').val();
+                    // Handling form submission for completing an order
+                    $('#formSelesaiOrder').submit(function (e) {
+                        e.preventDefault();
 
-                Swal.fire({
-                    title: 'Konfirmasi Akhir',
-                    text: 'Apakah data yang dimasukkan sudah benar?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Selesaikan',
-                    cancelButtonText: 'Periksa Lagi'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '/order/' + selectedOrderId,
-                            type: 'PATCH',
-                            data: {
-                                _token: '{{ csrf_token() }}',
-                                jumlah_masuk: jumlahMasuk,
-                                catatan: catatan
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire('Sukses!', response.message, 'success').then(() => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Gagal!', response.message, 'error');
-                                }
-                            },
-                            error: function (xhr) {
-                                Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                        const jumlahMasuk = $('#jumlah_masuk').val();
+                        const catatan = $('#catatan').val();
+
+                        Swal.fire({
+                            title: 'Konfirmasi Akhir',
+                            text: 'Apakah data yang dimasukkan sudah benar?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Selesaikan',
+                            cancelButtonText: 'Periksa Lagi'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajax({
+                                    url: '/order/' + selectedOrderId,
+                                    type: 'PATCH',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        jumlah_masuk: jumlahMasuk,
+                                        catatan: catatan
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire('Sukses!', response.message, 'success').then(() => {
+                                                location.reload();
+                                            });
+                                        } else {
+                                            Swal.fire('Gagal!', response.message, 'error');
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                                    }
+                                });
                             }
                         });
-                    }
-                });
-            });
+                    });
 
-            // Handling form submission for canceling an order
-            $('#formBatalOrder').submit(function (e) {
-                e.preventDefault();
+                    // Handling form submission for canceling an order
+                    $('#formBatalOrder').submit(function (e) {
+                        e.preventDefault();
 
-                const catatanBatal = $('#catatan_batal').val();
+                        const catatanBatal = $('#catatan_batal').val();
 
-                Swal.fire({
-                    title: 'Konfirmasi Akhir',
-                    text: 'Apakah Anda yakin ingin membatalkan pesanan?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Batalkan',
-                    cancelButtonText: 'Periksa Lagi'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '/order/' + selectedOrderId + '/cancel',
-                            type: 'PATCH',
-                            data: {
-                                _token: '{{ csrf_token() }}',
-                                catatan: catatanBatal
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire('Sukses!', response.message, 'success').then(() => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Gagal!', response.message, 'error');
-                                }
-                            },
-                            error: function (xhr) {
-                                Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                        Swal.fire({
+                            title: 'Konfirmasi Akhir',
+                            text: 'Apakah Anda yakin ingin membatalkan pesanan?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Batalkan',
+                            cancelButtonText: 'Periksa Lagi'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajax({
+                                    url: '/order/' + selectedOrderId + '/cancel',
+                                    type: 'PATCH',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        catatan: catatanBatal
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire('Sukses!', response.message, 'success').then(() => {
+                                                location.reload();
+                                            });
+                                        } else {
+                                            Swal.fire('Gagal!', response.message, 'error');
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                                    }
+                                });
                             }
                         });
-                    }
+                    });
                 });
-            });
-        });
-    </script>
-@endpush
+            </script>
+        @endpush

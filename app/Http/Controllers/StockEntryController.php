@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\StockEntry;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class StockEntryController extends Controller
@@ -60,6 +61,14 @@ class StockEntryController extends Controller
             'stok_masuk' => 'required|integer|min:1',  // Validasi stok masuk
             'keterangan' => 'nullable|string|max:255',
         ]);
+
+        // Jika nomor_nota diisi, cek apakah ada di tabel transaction
+        if (!empty($validated['nomor_nota'])) {
+            $exists = \App\Models\Transaction::where('nomor_nota', $validated['nomor_nota'])->exists();
+            if (!$exists) {
+                return redirect()->back()->withInput()->withErrors(['nomor_nota' => 'Nomor nota tidak ditemukan di tabel transaksi.']);
+            }
+        }
 
         // Menambah stok barang
         $item = Item::findOrFail($validated['kode_barang']);

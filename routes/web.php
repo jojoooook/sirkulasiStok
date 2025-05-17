@@ -9,6 +9,7 @@ use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\NotaController;
 
 Route::get('/', [HomepageController::class, 'index'])->name('pages.homepage');
 // ItemController
@@ -45,6 +46,7 @@ Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySuppli
 Route::get('/order', [OrderController::class, 'index'])->name('order.index');  
 Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');  
 Route::post('/order', [OrderController::class, 'store'])->name('order.store');  
+Route::post('/order/invoice', [OrderController::class, 'addInvoice'])->name('order.addInvoice');
 
 Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
 Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
@@ -57,3 +59,11 @@ Route::get('/setting/{id}/edit', [SettingController::class, 'edit'])->name('sett
 Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
 Route::delete('/setting/{id}', [SettingController::class, 'destroy'])->name('setting.destroy');
 
+// NotaController (Daftar Nota)
+Route::get('/nota', [NotaController::class, 'index'])->name('nota.index');
+Route::get('/nota/create', [NotaController::class, 'create'])->name('nota.create');
+Route::post('/nota', [NotaController::class, 'store'])->name('nota.store');
+Route::get('/nota/{id}', [NotaController::class, 'show'])->name('nota.show');
+Route::get('/nota/{id}/edit', [NotaController::class, 'edit'])->name('nota.edit');
+Route::put('/nota/{id}', [NotaController::class, 'update'])->name('nota.update');
+Route::delete('/nota/{id}', [NotaController::class, 'destroy'])->name('nota.destroy');

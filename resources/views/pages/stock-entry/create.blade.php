@@ -71,6 +71,17 @@
         </script>
     @endif
 
+    @if($errors->has('nomor_nota'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ $errors->first('nomor_nota') }}',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    @endif
+
     <script>
         $(document).ready(function () {
             $('#kode_barang').select2({
