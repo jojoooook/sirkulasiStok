@@ -8,11 +8,6 @@
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <form action="{{ route('item.index') }}" method="GET" class="d-flex">
             <div class="input-group">
-
-            <input type="text" id="searchInput" name="search" class="form-control me-2" placeholder="Cari Barang" value="{{ request('search') }}">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i> Cari
-                </button>
                 <input type="text" name="search" class="form-control me-2" placeholder="Cari Barang" value="{{ request('search') }}">
                 <button class="btn btn-primary" type="submit">
                     <i class="fas fa-search"></i> Cari
@@ -20,148 +15,11 @@
             </div>
         </form>
         <div class="d-flex gap-2">
-            <a href="{{ route('category.index') }}" class="btn btn-success">
-                <i class="fas fa-tags"></i> Tambah Kategori
-            </a>
             <a href="{{ route('item.create') }}" class="btn btn-primary">
                 + Tambah Barang
             </a>
-        </div>
-    </div>
-
-    <!-- Flash Message -->
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    @php
-        function next_sort_state($column) {
-            $currentSortBy = request('sort_by');
-            $currentSortOrder = request('sort_order');
-
-            if ($currentSortBy !== $column) return ['sort_by' => $column, 'sort_order' => 'asc'];
-            if ($currentSortOrder === 'asc') return ['sort_by' => $column, 'sort_order' => 'desc'];
-            return [];
-        }
-    @endphp
-
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle text-center">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="mx-auto">Nama Barang</span>
-                                    @php $nextSort = next_sort_state('nama_barang'); @endphp
-                                    <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                        @if(request('sort_by') === 'nama_barang')
-                                            <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                        @else
-                                            <i class="fas fa-sort"></i>
-                                        @endif
-                                    </a>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="mx-auto">Kategori</span>
-                                    @php $nextSort = next_sort_state('category.nama'); @endphp
-                                    <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                        @if(request('sort_by') === 'category.nama')
-                                            <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                        @else
-                                            <i class="fas fa-sort"></i>
-                                        @endif
-                                    </a>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="mx-auto">Stok</span>
-                                    @php $nextSort = next_sort_state('stok'); @endphp
-                                    <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                        @if(request('sort_by') === 'stok')
-                                            <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                        @else
-                                            <i class="fas fa-sort"></i>
-                                        @endif
-                                    </a>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="mx-auto">Harga</span>
-                                    @php $nextSort = next_sort_state('harga'); @endphp
-                                    <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                        @if(request('sort_by') === 'harga')
-                                            <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                        @else
-                                            <i class="fas fa-sort"></i>
-                                        @endif
-                                    </a>
-                                </div>
-                            </th>
-                            <th>Gambar</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($items as $item)
-                            <tr>
-                                <td>{{ $item->kode_barang }}</td>
-                                <td>{{ $item->nama_barang }}</td>
-                                <td>
-                                    <span class="badge bg-primary">{{ $item->category->nama ?? 'Tidak ada' }}</span>
-                                </td>
-                                <td>{{ $item->stok }}</td>
-                                <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                                <td>
-                                    @if($item->gambar)
-                                        <img src="{{ Storage::url($item->gambar) }}" class="img-thumbnail zoomable-image"
-                                             style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
-                                             data-bs-toggle="modal" data-bs-target="#imageModal"
-                                             data-image="{{ Storage::url($item->gambar) }}" alt="{{ $item->nama_barang }}">
-                                    @else
-                                        <span class="text-danger">Gambar tidak ditemukan</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                        <a href="{{ route('item.edit', $item->kode_barang) }}"
-                                           class="btn btn-warning btn-sm d-flex align-items-center">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </a>
-                                        <form id="delete-item-form-{{ $item->kode_barang }}"
-                                              action="{{ route('item.destroy', $item->kode_barang) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button"
-                                                    class="btn btn-danger btn-sm d-flex align-items-center delete-item-btn"
-                                                    data-id="{{ $item->kode_barang }}" data-name="{{ $item->nama_barang }}">
-                                                <i class="fas fa-trash me-1"></i>Hapus
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-3 d-flex justify-content-center">
-                {{ $items->links('pagination::bootstrap-4') }}
-            </div>
-        </form>
-        <div class="d-flex gap-2">
             <a href="{{ route('category.index') }}" class="btn btn-success">
                 <i class="fas fa-tags"></i> Tambah Kategori
-            </a>
-            <a href="{{ route('item.create') }}" class="btn btn-primary">
-                + Tambah Barang
             </a>
         </div>
     </div>
@@ -184,112 +42,110 @@
 
     <!-- Table -->
     <div class="table-wrapper">
-        <table class="table table-bordered table-hover text-center align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="mx-auto">Nama Barang</span>
-                            @php $nextSort = next_sort_state('nama_barang'); @endphp
-                            <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                @if(request('sort_by') === 'nama_barang')
-                                    <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="mx-auto">Kategori</span>
-                            @php $nextSort = next_sort_state('category.nama'); @endphp
-                            <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                @if(request('sort_by') === 'category.nama')
-                                    <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </a>
-
-                        </div>
-                    </th>
-                    <th>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="mx-auto">Stok</span>
-                            @php $nextSort = next_sort_state('stok'); @endphp
-                            <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                @if(request('sort_by') === 'stok')
-                                    <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="mx-auto">Harga</span>
-                            @php $nextSort = next_sort_state('harga'); @endphp
-                            <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                @if(request('sort_by') === 'harga')
-                                    <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort"></i>
-                                @endif
-                            </a>
-                        </div>
-                    </th>
-                    <th>Gambar</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($items as $item)
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-center align-middle">
+                <thead class="table-light">
                     <tr>
-                        <td>{{ $item->id }}</td>
-                        <td>{{ $item->nama_barang }}</td>
-                        <td>
-                            <span class="badge bg-primary">{{ $item->category->nama ?? 'Tidak ada' }}</span>
-                        </td>
-                        <td>{{ $item->stok }}</td>
-                        <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                        <td>
-                            @if($item->gambar)
-                                <img src="{{ Storage::url($item->gambar) }}" class="img-thumbnail zoomable-image"
-                                     style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
-                                     data-bs-toggle="modal" data-bs-target="#imageModal"
-                                     data-image="{{ Storage::url($item->gambar) }}" alt="{{ $item->nama_barang }}">
-                            @else
-                                <span class="text-danger">Tidak ada gambar</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                <a href="{{ route('item.edit', $item->id) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit me-1"></i> Edit
+                        <th>ID</th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Nama Barang</span>
+                                @php $nextSort = next_sort_state('nama_barang'); @endphp
+                                <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'nama_barang')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
                                 </a>
-                                <form id="delete-item-form-{{ $item->id }}"
-                                      action="{{ route('item.destroy', $item->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-danger btn-sm delete-item-btn"
-                                            data-id="{{ $item->id }}" data-name="{{ $item->nama_barang }}">
-                                        <i class="fas fa-trash me-1"></i> Hapus
-                                    </button>
-                                </form>
                             </div>
-                        </td>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Kategori</span>
+                                @php $nextSort = next_sort_state('category.nama'); @endphp
+                                <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'category.nama')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Stok</span>
+                                @php $nextSort = next_sort_state('stok'); @endphp
+                                <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'stok')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mx-auto">Harga</span>
+                                @php $nextSort = next_sort_state('harga'); @endphp
+                                <a href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'harga')
+                                        <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
+                            </div>
+                        </th>
+                        <th>Gambar</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach($items as $item)
+                        <tr>
+                            <td>{{ $item->kode_barang }}</td>
+                            <td>{{ $item->nama_barang }}</td>
+                            <td><span class="badge bg-primary">{{ $item->category->nama ?? 'Tidak ada' }}</span></td>
+                            <td>{{ $item->stok }}</td>
+                            <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                            <td>
+                                @if($item->gambar)
+                                    <img src="{{ Storage::url($item->gambar) }}" class="img-thumbnail zoomable-image"
+                                         style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                                         data-bs-toggle="modal" data-bs-target="#imageModal"
+                                         data-image="{{ Storage::url($item->gambar) }}" alt="{{ $item->nama_barang }}">
+                                @else
+                                    <span class="text-danger">Tidak ada gambar</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <a href="{{ route('item.edit', $item->kode_barang) }}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                    <form id="delete-item-form-{{ $item->kode_barang }}" action="{{ route('item.destroy', $item->kode_barang) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-danger btn-sm delete-item-btn"
+                                                data-id="{{ $item->kode_barang }}" data-name="{{ $item->nama_barang }}">
+                                            <i class="fas fa-trash me-1"></i>Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Pagination -->
-    <div class="mt-3 d-flex justify-content-center">
-        {{ $items->links('pagination::bootstrap-4') }}
+        <!-- Pagination -->
+        <div class="mt-3 d-flex justify-content-center">
+            {{ $items->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 
     <!-- Modal Preview Gambar -->

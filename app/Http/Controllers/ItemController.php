@@ -18,55 +18,39 @@ class ItemController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'like', "%{$search}%");
-
-                // Tambahkan pencarian hanya jika angka
-                if (is_numeric($search)) {
-                    $q->orWhere('stok', $search)
-                    ->orWhere('harga', $search);
-                }
-
-                $q->orWhereHas('category', function ($q2) use ($search) {
+                $q->where('nama_barang', 'like', "%{$search}%")
+                ->orWhere('stok', 'like', "%{$search}%")
+                ->orWhere('harga', 'like', "%{$search}%")
+                ->orWhereHas('category', function ($q2) use ($search) {
                     $q2->where('nama', 'like', "%{$search}%");
                 });
             });
         }
 
-        // Allowed sorting fields
-        $sortFields = [
-            'kode_barang'   => 'kode_barang',
-            'nama_barang'   => 'nama_barang',
-            'stok'          => 'stok',
-            'harga'         => 'harga',
-            'category.nama' => 'categories.nama',
-        ];
-
-        // Get sort parameters with default values
+        // Sorting
         $sortBy = $request->get('sort_by', 'kode_barang');
         $sortOrder = $request->get('sort_order', 'asc');
+        $allowedSorts = ['kode_barang', 'nama_barang', 'stok', 'harga', 'category.nama'];
 
-        // Apply sorting if valid
-        if (array_key_exists($sortBy, $sortFields)) {
+        if (in_array($sortBy, $allowedSorts)) {
             if ($sortBy === 'category.nama') {
                 $query->join('categories', 'items.category_id', '=', 'categories.id')
                     ->orderBy('categories.nama', $sortOrder)
-                    ->select('items.*'); // Hindari konflik kolom
+                    ->select('items.*');
             } else {
-                $query->orderBy($sortFields[$sortBy], $sortOrder);
+                $query->orderBy($sortBy, $sortOrder);
             }
         }
 
-        // Pagination + appends
         $items = $query->paginate(10)->appends($request->all());
 
-        // Untuk AJAX (Live Search)
         if ($request->ajax()) {
             return view('pages.items._table', compact('items'))->render();
         }
 
-        // Return view utama
         return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
+
 
 
     public function create()
