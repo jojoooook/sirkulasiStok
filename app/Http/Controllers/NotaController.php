@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Transaction;
-use App\Models\Supplier;
-use App\Models\Item;
 use Illuminate\Http\Request;
 
 class NotaController extends Controller
@@ -26,7 +24,28 @@ class NotaController extends Controller
         $notas = $transactions->mapWithKeys(function ($transaction) {
             $orders = Order::with(['supplier', 'item'])
                 ->where('nomor_nota', $transaction->nomor_nota)
-                ->get();
+                ->get()
+                ->map(function($order) {
+                    // Mengambil stok masuk yang relevan untuk nomor_nota dan kode_barang
+                    $stockEntries = \App\Models\StockEntry::where('nomor_nota', $order->nomor_nota)
+                        ->where('kode_barang', $order->kode_barang)
+                        ->get();
+
+                    // Total stok masuk untuk barang tersebut
+                    $totalStockIn = $stockEntries->sum('stok_masuk');
+
+                    // Menentukan status dan jumlah barang masuk berdasarkan status order
+                    if ($order->status_order === 'pending' || $order->status_order === 'dibatalkan') {
+                        $order->stok_masuk_display = '-'; // Tampilkan "-" jika status pending atau dibatalkan
+                    } elseif ($order->status_order === 'selesai') {
+                        $order->stok_masuk_display = $totalStockIn; // Tampilkan jumlah stok masuk sesuai data
+                    } else {
+                        $order->stok_masuk_display = '-'; // Default tampilkan "-"
+                    }
+
+                    return $order;
+                });
+
             return [$transaction->nomor_nota => $orders];
         });
 
@@ -43,7 +62,7 @@ class NotaController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi nomor nota
+        // Validasi nomor nota, pastikan unik di tabel transactions
         $validated = $request->validate([
             'nomor_nota' => 'required|string|max:50|unique:transactions,nomor_nota',
         ]);
@@ -54,17 +73,18 @@ class NotaController extends Controller
                 'nomor_nota' => $validated['nomor_nota'],
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
-            // Check if error is due to duplicate entry
+            // Error handling jika terjadi duplikasi
             if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+                // Kirim pesan error ke halaman utama
                 return redirect()->route('nota.index')->with('error', 'Nomor nota sudah ada, silakan gunakan nomor lain.');
             }
             // Handle other errors
             return redirect()->route('nota.index')->with('error', 'Terjadi kesalahan saat menambahkan nomor nota.');
         }
 
+        // Jika berhasil, redirect dengan pesan sukses
         return redirect()->route('nota.index')->with('success', 'Nomor nota berhasil ditambahkan.');
     }
-
 
 
     public function destroy($nomor_nota)

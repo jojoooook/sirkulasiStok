@@ -88,9 +88,12 @@ class OrderController extends Controller
             'items.*.catatan' => 'nullable|string|max:255',
         ]);
 
+        // Convert nomor_nota to uppercase
+        $nomorNotaUpper = strtoupper($validated['nomor_nota']);
+
         // Insert or ignore transaction record for nomor_nota
         \App\Models\Transaction::firstOrCreate([
-            'nomor_nota' => $validated['nomor_nota'],
+            'nomor_nota' => $nomorNotaUpper,
         ]);
 
         foreach ($validated['items'] as $item) {
@@ -100,8 +103,17 @@ class OrderController extends Controller
                 return redirect()->route('order.create')->with('error', 'Item tidak ditemukan.');
             }
 
+            // Check for duplicate order with same nomor_nota and kode_barang
+            $existingOrder = Order::where('nomor_nota', $nomorNotaUpper)
+                ->where('kode_barang', $item['item_id'])
+                ->first();
+
+            if ($existingOrder) {
+                return redirect()->route('order.create')->with('error', 'Barang sudah pernah dipesan dengan nomor nota yang sama.');
+            }
+
             Order::create([
-                'nomor_nota' => $validated['nomor_nota'],  // Menyimpan nomor nota
+                'nomor_nota' => $nomorNotaUpper,  // Menyimpan nomor nota dalam uppercase
                 'supplier_id' => $validated['supplier_id'],
                 'kode_barang' => $item['item_id'],
                 'jumlah_order' => $item['jumlah_order'],
