@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', content: 'Tambah Barang Keluar')
+@section('title', 'Tambah Barang Keluar')
 
 @section('content')
     <div class="container">
@@ -10,12 +10,12 @@
             @csrf
 
             <div class="form-group">
-                <label for="item_id">Barang</label>
-                <select name="item_id" id="item_id" class="form-control" required>
+                <label for="kode_barang">Barang</label>
+                <select name="kode_barang" id="kode_barang" class="form-control select2" required>
                     <option value="">Pilih Barang</option>
                     @foreach($items as $item)
-                        <option value="{{ $item->id }}" {{ old('item_id') == $item->id ? 'selected' : '' }}>
-                            {{ $item->nama_barang }}
+                        <option value="{{ $item->kode_barang }}" {{ old('kode_barang') == $item->kode_barang ? 'selected' : '' }}>
+                            {{ $item->kode_barang }} - {{ $item->nama_barang }}
                         </option>
                     @endforeach
                 </select>
@@ -32,7 +32,7 @@
             <div class="form-group">
                 <label for="stok_keluar">Jumlah Stok Keluar</label>
                 <input type="number" name="stok_keluar" id="stok_keluar" class="form-control"
-                    value="{{ old('stok_keluar') }}" required>
+                    value="{{ old('stok_keluar') }}" oninput="this.value = this.value.toUpperCase()" required>
             </div>
 
             <div class="form-group">
@@ -70,35 +70,35 @@
 
     <script>
         $(document).ready(function () {
-            $('#item_id').select2({
+            // Initialize select2 for searchable dropdown
+            $('#kode_barang').select2({
                 placeholder: "Pilih Barang",
                 allowClear: true
             });
 
-            // Ketika item dipilih, tampilkan gambar barang
-            $('#item_id').change(function () {
-                var itemId = $(this).val();
-                if (itemId) {
-                    // Cari item berdasarkan id dan tampilkan gambar
-                    var item = @json($items); // Convert $items ke JavaScript
-                    var selectedItem = item.find(i => i.id == itemId);
+            // Show item image when a barang is selected
+            $('#kode_barang').change(function () {
+                var kodeBarang = $(this).val();
+                if (kodeBarang) {
+                    var items = @json($items);
+                    var selectedItem = items.find(i => i.kode_barang === kodeBarang);
 
                     if (selectedItem && selectedItem.gambar) {
-                        // Menampilkan gambar dengan URL yang benar
                         $('#item_image').attr('src', '/storage/' + selectedItem.gambar);
-                        $('#item-image-container').show(); // Tampilkan gambar
+                        $('#item-image-container').show();
                     } else {
-                        $('#item-image-container').hide(); // Sembunyikan gambar jika tidak ada
+                        $('#item-image-container').hide();
                     }
                 } else {
-                    $('#item-image-container').hide(); // Sembunyikan gambar jika tidak ada pilihan
+                    $('#item-image-container').hide();
                 }
             });
-        });
 
-        document.getElementById('stock-exit-form').addEventListener('submit', function (event) {
-            document.getElementById('submit-button').disabled = true;
-            document.getElementById('submit-button').innerText = "Sedang Memproses...";
+            // Disable submit button on form submit to prevent multiple submissions
+            document.getElementById('stock-exit-form').addEventListener('submit', function (event) {
+                document.getElementById('submit-button').disabled = true;
+                document.getElementById('submit-button').innerText = "Sedang Memproses...";
+            });
         });
     </script>
 @endpush

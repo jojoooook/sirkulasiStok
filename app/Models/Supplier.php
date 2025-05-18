@@ -9,7 +9,12 @@ class Supplier extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'kode_supplier';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'kode_supplier',
         'nama',
         'alamat',
         'telepon',
@@ -17,11 +22,11 @@ class Supplier extends Model
 
     public function items()
     {
-        return $this->hasMany(Item::class);
+        return $this->hasMany(Item::class, 'supplier_id', 'kode_supplier');
     }
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Order::class, 'supplier_id', 'kode_supplier');
     }
 }

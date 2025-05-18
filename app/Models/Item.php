@@ -11,7 +11,14 @@ class Item extends Model
 
     protected $table = 'items';
 
+    protected $primaryKey = 'kode_barang';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'kode_barang',
         'nama_barang',
         'category_id',
         'stok',

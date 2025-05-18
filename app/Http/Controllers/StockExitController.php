@@ -14,7 +14,7 @@ class StockExitController extends Controller
         $query = StockExit::query();
 
         // Join dengan tabel items agar bisa sort berdasarkan nama_barang
-        $query->join('items', 'stock_exits.item_id', '=', 'items.id')
+        $query->join('items', 'stock_exits.kode_barang', '=', 'items.kode_barang')
             ->select('stock_exits.*'); // penting agar pagination tetap berjalan
 
         // Pencarian
@@ -56,13 +56,13 @@ class StockExitController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'item_id' => 'required|exists:items,id',
+            'kode_barang' => 'required|exists:items,kode_barang',
             'stok_keluar' => 'required|integer|min:1',
             'keterangan' => 'nullable|string|max:255',
         ]);
 
         // Mengurangi stok barang
-        $item = Item::findOrFail($validated['item_id']);
+        $item = Item::findOrFail($validated['kode_barang']);
         if ($item->stok < $validated['stok_keluar']) {
             return redirect()->back()->with('error', 'Stok tidak mencukupi.');
         }
@@ -70,7 +70,7 @@ class StockExitController extends Controller
 
         // Simpan riwayat barang keluar
         StockExit::create([
-            'item_id' => $validated['item_id'],
+            'kode_barang' => $validated['kode_barang'],
             'stok_keluar' => $validated['stok_keluar'],
             'tanggal_keluar' => now(),
             'keterangan' => $validated['keterangan'],

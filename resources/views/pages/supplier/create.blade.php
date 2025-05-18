@@ -10,6 +10,12 @@
             @csrf
 
             <div class="form-group">
+                <label for="kode_supplier">Kode Supplier</label>
+                <input type="text" id="kode_supplier" name="kode_supplier" class="form-control"
+                    value="{{ old('kode_supplier') }}" required oninput="this.value = this.value.toUpperCase()">
+            </div>
+
+            <div class="form-group">
                 <label for="nama">Nama Supplier</label>
                 <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" required>
             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\StockEntry;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class StockEntryController extends Controller
@@ -14,7 +15,7 @@ class StockEntryController extends Controller
         $query = StockEntry::query();
 
         // Join dengan tabel items agar bisa sort berdasarkan nama_barang
-        $query->join('items', 'stock_entries.item_id', '=', 'items.id')
+        $query->join('items', 'stock_entries.kode_barang', '=', 'items.kode_barang')
             ->select('stock_entries.*'); // penting agar pagination tetap berjalan
 
         // Pencarian
@@ -55,18 +56,28 @@ class StockEntryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'stok_masuk' => 'required|integer|min:1',
+            'kode_barang' => 'required|exists:items,kode_barang',  // Validasi kode barang
+            'nomor_nota' => 'nullable|string|max:255',  // Nomor nota opsional, bisa kosong
+            'stok_masuk' => 'required|integer|min:1',  // Validasi stok masuk
             'keterangan' => 'nullable|string|max:255',
         ]);
 
+        // Jika nomor_nota diisi, cek apakah ada di tabel transaction
+        if (!empty($validated['nomor_nota'])) {
+            $exists = Transaction::where('nomor_nota', $validated['nomor_nota'])->exists();
+            if (!$exists) {
+                return redirect()->back()->withInput()->withErrors(['nomor_nota' => 'Nomor nota tidak ditemukan di tabel transaksi.']);
+            }
+        }
+
         // Menambah stok barang
-        $item = Item::findOrFail($validated['item_id']);
-        $item->stok += $validated['stok_masuk'];
+        $item = Item::findOrFail($validated['kode_barang']);
+        $item->stok += $validated['stok_masuk'];  // Tambahkan stok barang sesuai jumlah masuk
 
         // Simpan riwayat barang masuk
         StockEntry::create([
-            'item_id' => $validated['item_id'],
+            'kode_barang' => $validated['kode_barang'],
+            'nomor_nota' => $validated['nomor_nota'],  // Nomor nota yang diterima
             'stok_masuk' => $validated['stok_masuk'],
             'tanggal_masuk' => now(),
             'keterangan' => $validated['keterangan'],
@@ -75,7 +86,7 @@ class StockEntryController extends Controller
         // Update stok barang di database
         $item->save();
 
-        // Mengirimkan pesan sukses
         return redirect()->route('stock-entry.index')->with('success', 'Barang masuk berhasil dicatat.');
     }
+
 }

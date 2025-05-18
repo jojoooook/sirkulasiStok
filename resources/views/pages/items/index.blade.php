@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Daftar Barang')
+
 @section('content')
 <div class="container mt-4">
     <h1 class="mb-4 text-center">Daftar Barang</h1>
@@ -171,7 +173,7 @@
 
             Swal.fire({
                 title: 'Yakin ingin menghapus?',
-                text: `Barang "${itemName}" akan dihapus permanen!`,
+                text: Barang "${itemName}" akan dihapus permanen!,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',

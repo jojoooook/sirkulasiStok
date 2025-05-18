@@ -7,10 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockEntry extends Model
 {
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'nomor_nota', 'nomor_nota');
+    }
     use HasFactory;
 
     protected $fillable = [
-        'item_id', 
+        'kode_barang', 
+        'nomor_nota',
         'stok_masuk', 
         'tanggal_masuk', 
         'keterangan', 
@@ -18,6 +23,6 @@ class StockEntry extends Model
 
     public function item()
     {
-        return $this->belongsTo(Item::class);  // Relasi ke model Item
+        return $this->belongsTo(Item::class, 'kode_barang', 'kode_barang');  // Relasi ke model Item dengan foreign key kode_barang
     }
 }

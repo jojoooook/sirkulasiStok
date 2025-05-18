@@ -9,51 +9,75 @@ use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\NotaController;
+use App\Http\Controllers\LoginController;
+use App\Http\Middleware\RoleMiddleware;
 
-Route::get('/', [HomepageController::class, 'index'])->name('pages.homepage');
-// ItemController
-Route::get('/item', [ItemController::class, 'index'])->name('item.index');
-Route::get('/item/create', [ItemController::class, 'create'])->name('item.create');
-Route::post('/item', [ItemController::class, 'store'])->name('item.store');
-Route::get('/item/{id}/edit', [ItemController::class, 'edit'])->name('item.edit');
-Route::put('/item/{id}', [ItemController::class, 'update'])->name('item.update');
-Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
-Route::resource('item', ItemController::class);
-Route::resource('category', CategoryController::class)->except(['show']);
+// Route untuk login
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// StockEntryController(Barang Masuk)
-Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
-Route::get('/stock-entry/create', [StockEntryController::class, 'create'])->name('stock-entry.create');
-Route::post('/stock-entry', [StockEntryController::class, 'store'])->name('stock-entry.store');
+// Route yang membutuhkan autentikasi dan middleware role
+Route::middleware('auth')->group(function () {
 
-// StockExitController (Barang Keluar)
-Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index');
-Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create');
-Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store');
+    // Route Dashboard - Admin dan Karyawan bisa akses
+    Route::get('/', [HomepageController::class, 'index'])->name('dashboard'); // Dashboard
 
-// SupplierController
-Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
-Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
-Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+    // Routes untuk Admin - Admin bisa mengakses semua route
+    Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+        // Admin bisa mengakses semua route
+        Route::resource('item', ItemController::class);
+        Route::resource('category', CategoryController::class)->except(['show']);
 
-// OrderController (Order Barang)
-Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier']);
+        // StockEntryController (Barang Masuk)
+        Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
+        Route::get('/stock-entry/create', [StockEntryController::class, 'create'])->name('stock-entry.create');
+        Route::post('/stock-entry', [StockEntryController::class, 'store'])->name('stock-entry.store');
 
-Route::get('/order', [OrderController::class, 'index'])->name('order.index');  
-Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');  
-Route::post('/order', [OrderController::class, 'store'])->name('order.store');  
+        // StockExitController (Barang Keluar)
+        Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index');
+        Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create');
+        Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store');
 
-Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
-Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+        // SupplierController
+        Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
+        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+        Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
+        Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+        Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+        Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
-// SettingController
-Route::get('/setting', [SettingController::class, 'index'])->name('setting.index'); 
-Route::get('/setting/create', [SettingController::class, 'create'])->name('setting.create');
-Route::post('/setting', [SettingController::class, 'store'])->name('setting.store');
-Route::get('/setting/{id}/edit', [SettingController::class, 'edit'])->name('setting.edit');
-Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
-Route::delete('/setting/{id}', [SettingController::class, 'destroy'])->name('setting.destroy');
+        // OrderController (Order Barang)
+        Route::get('/order', [OrderController::class, 'index'])->name('order.index');
+        Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');
+        Route::post('/order', [OrderController::class, 'store'])->name('order.store');
+        Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
+        Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+        Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier'])->name('get-items');
+
+        // SettingController
+        Route::get('/setting', [SettingController::class, 'index'])->name('setting.index');
+        Route::get('/setting/create', [SettingController::class, 'create'])->name('setting.create');
+        Route::post('/setting', [SettingController::class, 'store'])->name('setting.store');
+        Route::get('/setting/{id}/edit', [SettingController::class, 'edit'])->name('setting.edit');
+        Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
+        Route::patch('/setting/{id}/toggle-active', [SettingController::class, 'toggleActive'])->name('setting.toggleActive');
+        Route::post('/setting/reset-password/{id}', [SettingController::class, 'resetPassword'])->name('setting.resetPassword');
+
+        // NotaController (Daftar Nota)
+        Route::get('/nota', [NotaController::class, 'index'])->name('nota.index');
+        Route::post('/nota', [NotaController::class, 'store'])->name('nota.store');
+        Route::delete('/nota/{id}', [NotaController::class, 'destroy'])->name('nota.destroy');
+    });
+
+    // Karyawan hanya bisa mengakses Dashboard, Daftar Barang, dan Barang Keluar
+    Route::middleware(RoleMiddleware::class . ':karyawan')->group(function () {
+        Route::get('/item', [ItemController::class, 'index'])->name('item.index'); // Daftar Barang
+        Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index'); // Barang Keluar - Index
+        Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create'); // Barang Keluar - Input
+        Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store'); // Barang Keluar - Store
+    });
+
+});
 

@@ -6,9 +6,16 @@
     <div class="container">
         <h1 class="mb-4 text-center">Edit Supplier</h1>
 
-        <form action="{{ route('supplier.update', $supplier->id) }}" method="POST">
+        <form action="{{ route('supplier.update', $supplier->kode_supplier) }}" method="POST" id="supplier-form">
             @csrf
             @method('PUT')
+
+            <div class="form-group">
+                <label for="kode_supplier">Kode Supplier</label>
+                <input type="text" id="kode_supplier" name="kode_supplier" class="form-control"
+                    value="{{ old('kode_supplier', $supplier->kode_supplier) }}" required
+                    oninput="this.value = this.value.toUpperCase()">
+            </div>
 
             <div class="form-group">
                 <label for="nama">Nama Supplier</label>
@@ -27,7 +34,7 @@
             </div>
 
 
-            <button type="submit" class="btn btn-primary mt-3">Update Supplier</button>
+            <button type="submit" class="btn btn-primary mt-3" id="submit-button">Update Supplier</button>
         </form>
     </div>
 @endsection
