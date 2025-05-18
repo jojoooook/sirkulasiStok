@@ -125,20 +125,31 @@
 
                         <div class="mb-3">
                             <label for="nomor_nota" class="form-label">Nomor Nota</label>
-                            <input type="text" class="form-control" id="nomor_nota" name="nomor_nota" required
-                                value="{{ old('nomor_nota') }}">
+                            <input type="text" class="form-control" id="nomor_nota" name="nomor_nota"
+                                placeholder="Nomor Nota" required value="{{ old('nomor_nota') }}"
+                                oninput="this.value = this.value.toUpperCase()">
                         </div>
                     </div>
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Tambah</button>
+                        <button type="submit" id="submit-button" class="btn btn-primary">Tambah</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+            $('#nota-form').on('submit', function () {
+                $('#submit-button').prop('disabled', true).text('Sedang Memproses...');
+            });
+        });
+    </script>
+@endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

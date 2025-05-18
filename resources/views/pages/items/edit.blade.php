@@ -12,7 +12,7 @@
             <div class="mb-3">
                 <label for="kode_barang" class="form-label">Kode Barang</label>
                 <input type="text" class="form-control" id="kode_barang" name="kode_barang" value="{{ $item->kode_barang }}"
-                    required>
+                    required oninput="this.value = this.value.toUpperCase()">
             </div>
 
             <div class="mb-3">

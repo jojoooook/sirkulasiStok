@@ -5,15 +5,22 @@
 @section('content')
     <div class="container">
         <h1>Tambah Barang Baru</h1>
-        <form action="{{ route('item.store') }}" method="POST" enctype="multipart/form-data">
+        <form id="item-form" action="{{ route('item.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
+            @if ($errors->has('kode_barang'))
+                <div class="alert alert-danger">
+                    {{ $errors->first('kode_barang') }}
+                </div>
+            @endif
             <div class="mb-3">
                 <label for="kode_barang" class="form-label">Kode Barang</label>
-                <input type="text" class="form-control" id="kode_barang" name="kode_barang" required>
+                <input type="text" class="form-control" id="kode_barang" name="kode_barang" value="{{ old('kode_barang') }}"
+                    required oninput="this.value = this.value.toUpperCase()">
             </div>
             <div class="mb-3">
                 <label for="nama_barang" class="form-label">Nama Barang</label>
-                <input type="text" class="form-control" id="nama_barang" name="nama_barang" required>
+                <input type="text" class="form-control" id="nama_barang" name="nama_barang" value="{{ old('nama_barang') }}"
+                    required>
             </div>
 
             <div class="mb-3">
@@ -51,7 +58,7 @@
                 <input type="file" class="form-control" id="gambar" name="gambar">
             </div>
 
-            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="submit" id="submit-button" class="btn btn-primary">Simpan</button>
         </form>
     </div>
 @endsection
@@ -67,6 +74,10 @@
             $('#category_id').select2({
                 placeholder: "Pilih Kategori",
                 allowClear: true
+            });
+
+            $('#item-form').on('submit', function () {
+                $('#submit-button').prop('disabled', true).text('Sedang Memproses...');
             });
         });
     </script>

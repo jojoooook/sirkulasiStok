@@ -21,7 +21,7 @@
             <div class="form-group">
                 <label for="nomor_nota">Nomor Nota</label>
                 <input type="text" name="nomor_nota" id="nomor_nota" class="form-control" maxlength="255"
-                    value="{{ old('nomor_nota') }}">
+                    value="{{ old('nomor_nota') }}" oninput="this.value = this.value.toUpperCase()" required>
             </div>
 
             <!-- Menampilkan gambar barang setelah dipilih, tampilkan di atas input -->

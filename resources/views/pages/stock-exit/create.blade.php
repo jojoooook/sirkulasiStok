@@ -32,7 +32,7 @@
             <div class="form-group">
                 <label for="stok_keluar">Jumlah Stok Keluar</label>
                 <input type="number" name="stok_keluar" id="stok_keluar" class="form-control"
-                    value="{{ old('stok_keluar') }}" required>
+                    value="{{ old('stok_keluar') }}" oninput="this.value = this.value.toUpperCase()" required>
             </div>
 
             <div class="form-group">

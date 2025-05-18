@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/order', [OrderController::class, 'store'])->name('order.store');
         Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
         Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+        Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier'])->name('get-items');
 
         // SettingController
         Route::get('/setting', [SettingController::class, 'index'])->name('setting.index');
