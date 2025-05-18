@@ -19,11 +19,11 @@ class ItemController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'like', "%{$search}%")
-                    ->orWhere('stok', 'like', "%{$search}%")
-                    ->orWhere('harga', 'like', "%{$search}%")
-                    ->orWhereHas('category', function ($q2) use ($search) {
-                        $q2->where('nama', 'like', "%{$search}%");
-                    });
+                ->orWhere('stok', 'like', "%{$search}%")
+                ->orWhere('harga', 'like', "%{$search}%")
+                ->orWhereHas('category', function ($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -35,8 +35,8 @@ class ItemController extends Controller
         if (in_array($sortBy, $allowedSorts)) {
             if ($sortBy === 'category.nama') {
                 $query->join('categories', 'items.category_id', '=', 'categories.id')
-                      ->orderBy('categories.nama', $sortOrder)
-                      ->select('items.*');
+                    ->orderBy('categories.nama', $sortOrder)
+                    ->select('items.*');
             } else {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -44,13 +44,14 @@ class ItemController extends Controller
 
         $items = $query->paginate(10)->appends($request->all());
 
-        // Untuk AJAX (Live Search)
         if ($request->ajax()) {
             return view('pages.items._table', compact('items'))->render();
         }
 
         return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
+
+
 
     public function create()
     {
