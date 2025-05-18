@@ -18,30 +18,45 @@ class ItemController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'like', "%{$search}%")
-                    ->orWhere('stok', 'like', "%{$search}%")
-                    ->orWhere('harga', 'like', "%{$search}%")
-                    ->orWhereHas('category', function ($q2) use ($search) {
-                        $q2->where('nama', 'like', "%{$search}%");
-                    });
+                $q->where('nama_barang', 'like', "%{$search}%");
+
+                // Tambahkan pencarian hanya jika angka
+                if (is_numeric($search)) {
+                    $q->orWhere('stok', $search)
+                    ->orWhere('harga', $search);
+                }
+
+                $q->orWhereHas('category', function ($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%");
+                });
             });
         }
 
-        // Sorting
-        $sortBy = $request->get('sort_by', 'id');
-        $sortOrder = $request->get('sort_order', 'asc');
-        $allowedSorts = ['nama_barang', 'stok', 'harga', 'category.nama'];
+        // Allowed sorting fields
+        $sortFields = [
+            'kode_barang'   => 'kode_barang',
+            'nama_barang'   => 'nama_barang',
+            'stok'          => 'stok',
+            'harga'         => 'harga',
+            'category.nama' => 'categories.nama',
+        ];
 
-        if (in_array($sortBy, $allowedSorts)) {
+        // Get sort parameters with default values
+        $sortBy = $request->get('sort_by', 'kode_barang');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // Apply sorting if valid
+        if (array_key_exists($sortBy, $sortFields)) {
             if ($sortBy === 'category.nama') {
                 $query->join('categories', 'items.category_id', '=', 'categories.id')
-                      ->orderBy('categories.nama', $sortOrder)
-                      ->select('items.*');
+                    ->orderBy('categories.nama', $sortOrder)
+                    ->select('items.*'); // Hindari konflik kolom
             } else {
-                $query->orderBy($sortBy, $sortOrder);
+                $query->orderBy($sortFields[$sortBy], $sortOrder);
             }
         }
 
+        // Pagination + appends
         $items = $query->paginate(10)->appends($request->all());
 
         // Untuk AJAX (Live Search)
@@ -49,8 +64,10 @@ class ItemController extends Controller
             return view('pages.items._table', compact('items'))->render();
         }
 
+        // Return view utama
         return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
+
 
     public function create()
     {
@@ -62,9 +79,10 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'kode_barang' => 'required|string|max:255|unique:items,kode_barang',
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -79,26 +97,28 @@ class ItemController extends Controller
         return redirect()->route('item.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
-    public function edit($id)
+    public function edit($kode_barang)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
         $categories = Category::all();
         $suppliers = Supplier::all();
         return view('pages.items.edit', compact('item', 'categories', 'suppliers'));
     }
 
-    public function update(Request $request, $id)
+
+    public function update(Request $request, $kode_barang)
     {
         $validated = $request->validate([
+            'kode_barang' => 'required|string|max:255|unique:items,kode_barang,' . $kode_barang . ',kode_barang',
             'nama_barang' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
 
         if ($request->hasFile('gambar')) {
             if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
@@ -115,9 +135,9 @@ class ItemController extends Controller
         return redirect()->route('item.index')->with('success', 'Barang berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy($kode_barang)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::findOrFail($kode_barang);
 
         if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
             Storage::disk('public')->delete($item->gambar);
