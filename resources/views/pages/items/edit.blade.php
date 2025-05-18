@@ -5,14 +5,25 @@
 @section('content')
     <div class="container">
         <h1>Edit Barang</h1>
-        <form action="{{ route('item.update', $item->kode_barang) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('item.update', $item->kode_barang) }}" method="POST" enctype="multipart/form-data"
+            id="edit-item-form">
             @csrf
             @method('PUT')
 
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="mb-3">
                 <label for="kode_barang" class="form-label">Kode Barang</label>
-                <input type="text" class="form-control" id="kode_barang" name="kode_barang" value="{{ $item->kode_barang }}"
-                    required oninput="this.value = this.value.toUpperCase()">
+                <input type="text" class="form-control bg-light text-muted" id="kode_barang" name="kode_barang"
+                    value="{{ $item->kode_barang }}" required readonly>
             </div>
 
             <div class="mb-3">
@@ -61,7 +72,7 @@
                 <input type="file" class="form-control" id="gambar" name="gambar">
             </div>
 
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary" id="submit-button">Update</button>
         </form>
     </div>
 @endsection
@@ -78,6 +89,11 @@
             $('#category_id').select2({
                 placeholder: "Pilih Kategori",
                 allowClear: true
+            });
+
+            // Disable submit button and show processing text on form submit
+            $('#edit-item-form').on('submit', function () {
+                $('#submit-button').prop('disabled', true).text('Sedang Memproses...');
             });
         });
     </script>
