@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('karyawan'); // kolom role langsung ditambahkan di sini
+            $table->string('role')->default('karyawan'); 
+            $table->boolean('active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

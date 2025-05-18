@@ -52,7 +52,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/order', [OrderController::class, 'index'])->name('order.index');
         Route::get('/order/create', [OrderController::class, 'create'])->name('order.create');
         Route::post('/order', [OrderController::class, 'store'])->name('order.store');
-        Route::post('/order/invoice', [OrderController::class, 'addInvoice'])->name('order.addInvoice');
         Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
         Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 
@@ -62,8 +61,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/setting', [SettingController::class, 'store'])->name('setting.store');
         Route::get('/setting/{id}/edit', [SettingController::class, 'edit'])->name('setting.edit');
         Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
-        Route::delete('/setting/{id}', [SettingController::class, 'destroy'])->name('setting.destroy');
         Route::patch('/setting/{id}/toggle-active', [SettingController::class, 'toggleActive'])->name('setting.toggleActive');
+        Route::post('/setting/reset-password/{id}', [SettingController::class, 'resetPassword'])->name('setting.resetPassword');
 
         // NotaController (Daftar Nota)
         Route::get('/nota', [NotaController::class, 'index'])->name('nota.index');

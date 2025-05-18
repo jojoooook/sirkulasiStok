@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('active')->default(true)->after('role');
-        });
+        // Memeriksa apakah kolom 'active' sudah ada sebelum menambahkannya
+        if (!Schema::hasColumn('users', 'active')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->boolean('active')->default(true)->after('role');
+            });
+        }
     }
+
 
     /**
      * Reverse the migrations.

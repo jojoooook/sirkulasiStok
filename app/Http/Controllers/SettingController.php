@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class SettingController extends Controller
 {
@@ -20,21 +22,29 @@ class SettingController extends Controller
 
     public function store(Request $request)
     {
+        // Validasi data
         $request->validate([
+            'username' => 'required|string|max:255|unique:users',
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:admin,karyawan',
         ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => $request->role,
-        ]);
+        try {
+            User::create([
+                'username' => $request->username,
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'role' => $request->role,
+            ]);
 
-        return redirect()->route('setting.index')->with('success', 'Pengguna berhasil ditambahkan.');
+            return redirect()->route('setting.index')->with('success', 'Pengguna berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            Log::error('Terjadi kesalahan saat menyimpan data pengguna: ' . $e->getMessage());
+            return redirect()->route('setting.create')->with('error', 'Gagal menambahkan pengguna: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)
@@ -47,31 +57,40 @@ class SettingController extends Controller
     {
         $user = User::findOrFail($id);
 
+        // Validasi update data
         $request->validate([
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required|in:admin,karyawan',
+            'current_password' => 'nullable|string', // Validasi password lama (optional)
+            'password' => 'nullable|string|min:6|confirmed', // Validasi password baru (optional)
         ]);
 
+        // Update data pengguna
         $user->update([
+            'username' => $request->username,
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
         ]);
 
+        // Verifikasi password lama dan update password jika valid
+        if ($request->filled('current_password')) {
+            // Pastikan password lama benar
+            if (!Hash::check($request->current_password, $user->password)) {
+                return redirect()->route('setting.edit', $user->id)->with('error', 'Password lama salah!');
+            }
+
+            // Update password
+            $user->password = bcrypt($request->password);
+            $user->save();
+        }
+
         return redirect()->route('setting.index')->with('success', 'Pengguna berhasil diperbarui.');
     }
 
-    // Remove the destroy method to disable delete functionality
-    // public function destroy($id)
-    // {
-    //     $user = User::findOrFail($id);
-    //     $user->delete();
 
-    //     return redirect()->route('setting.index')->with('success', 'Pengguna berhasil dihapus.');
-    // }
-
-    // Add method to toggle active status
     public function toggleActive($id)
     {
         $user = User::findOrFail($id);
@@ -80,5 +99,17 @@ class SettingController extends Controller
 
         $status = $user->active ? 'diaktifkan' : 'dinonaktifkan';
         return redirect()->route('setting.index')->with('success', "Pengguna berhasil $status.");
+    }
+
+    // Method untuk reset password
+    public function resetPassword($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Set password default '123456'
+        $user->password = bcrypt('123456');
+        $user->save();
+
+        return redirect()->route('setting.edit', $user->id)->with('success', 'Password berhasil direset menjadi 123456.');
     }
 }

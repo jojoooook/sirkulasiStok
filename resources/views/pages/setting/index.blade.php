@@ -18,6 +18,8 @@
 
                     <tr>
 
+                        <th>Username</th>
+
                         <th>Nama</th>
 
                         <th>Email</th>
@@ -37,6 +39,8 @@
                     @foreach($users as $user)
 
                         <tr>
+
+                            <td>{{ $user->username }}</td>
 
                             <td>{{ $user->name }}</td>
 

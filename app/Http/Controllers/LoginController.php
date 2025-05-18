@@ -34,18 +34,18 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Check if user exists and is active
+        // Cek apakah pengguna ada dan aktif
         $user = User::where('username', $credentials['username'])->first();
 
         if (!$user) {
             return back()->withErrors([
-                'username' => 'The provided credentials do not match our records.',
+                'username' => 'Username atau password yang Anda masukkan salah.',
             ])->onlyInput('username');
         }
 
         if (!$user->active) {
             return back()->withErrors([
-                'username' => 'Your account is inactive. Please contact administrator.',
+                'username' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
             ])->onlyInput('username');
         }
 
@@ -57,7 +57,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
+            'username' => 'Username atau password yang Anda masukkan salah.',
         ])->onlyInput('username');
     }
 
