@@ -11,15 +11,17 @@ class HomepageController extends Controller
 {
     public function index()
     {
+        // Cek jika ada pesan error di session dan kirimkan ke view
+        $error = session('error'); 
+
         return view('pages.homepage', [
             'totalBarang' => Item::count(),
             'barangKeluarHariIni' => StockExit::whereDate('created_at', today())->sum('stok_keluar'),
             'barangMasukHariIni' => StockEntry::whereDate('created_at', today())->sum('stok_masuk'),
             'barangKeluarBulanIni' => StockExit::whereMonth('created_at', now()->month)->sum('stok_keluar'),
             'barangMasukBulanIni' => StockEntry::whereMonth('created_at', now()->month)->sum('stok_masuk'),
-            'barangHampirHabis' => Item::where('stok', '<=', 10)->get(), 
+            'barangHampirHabis' => Item::where('stok', '<=', 10)->get(),
+            'error' => $error, // Mengirimkan pesan error ke view
         ]);
-        
     }
-    
 }

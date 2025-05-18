@@ -62,11 +62,23 @@ class SettingController extends Controller
         return redirect()->route('setting.index')->with('success', 'Pengguna berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    // Remove the destroy method to disable delete functionality
+    // public function destroy($id)
+    // {
+    //     $user = User::findOrFail($id);
+    //     $user->delete();
+
+    //     return redirect()->route('setting.index')->with('success', 'Pengguna berhasil dihapus.');
+    // }
+
+    // Add method to toggle active status
+    public function toggleActive($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->active = !$user->active;
+        $user->save();
 
-        return redirect()->route('setting.index')->with('success', 'Pengguna berhasil dihapus.');
+        $status = $user->active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->route('setting.index')->with('success', "Pengguna berhasil $status.");
     }
 }

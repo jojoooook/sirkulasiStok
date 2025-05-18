@@ -44,9 +44,12 @@
         </li>
         <hr>
         <li>
-            <a href="/logout" class="btn btn-danger w-100">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
-            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </button>
+            </form>
         </li>
     </ul>
 

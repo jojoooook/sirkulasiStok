@@ -14,11 +14,18 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <span class="nav-link text-white">
-                        <i class="fas fa-user"></i> Nama User
-                    </span>
-                </li>
+                @auth
+                    <li class="nav-item d-flex align-items-center">
+                        <span class="nav-link text-white">
+                            <i class="fas fa-user"></i> {{ Auth::user()->name }} ({{ Auth::user()->role }})
+                        </span>
+                    </li>
+                @endauth
+                @guest
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('login') }}">Login</a>
+                    </li>
+                @endguest
             </ul>
         </div>
     </div>

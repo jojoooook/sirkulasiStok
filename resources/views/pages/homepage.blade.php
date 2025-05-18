@@ -5,6 +5,12 @@
 @section('content')
     <div class="container mt-4">
         <div class="row g-4">
+            <!-- Menampilkan Pesan Error Jika Ada -->
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <!-- Total Barang -->
             <div class="col-md-3">
