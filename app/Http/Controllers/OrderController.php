@@ -10,20 +10,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-
 class OrderController extends Controller
 {
     public function getItemsBySupplier($supplierId)
     {
-        $items = Item::where('supplier_id', $supplierId)->get(['kode_barang', 'nama_barang']);
+        $items = Item::where('supplier_id', $supplierId)->get(['kode_barang', 'nama_barang', 'stok']);
         return response()->json($items);
     }
+
     public function index(Request $request)
     {
-        // Mulai dengan query untuk mengambil data order dengan relasi supplier dan item
-        $query = Order::with(['supplier', 'item']);  
+        $query = Order::with(['supplier', 'item']);
 
-        // Pencarian berdasarkan supplier atau nama barang
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->whereHas('supplier', function ($q) use ($search) {
@@ -33,91 +31,85 @@ class OrderController extends Controller
             });
         }
 
-        // Sorting berdasarkan parameter yang diterima
-        $sortBy = $request->get('sort_by', 'tanggal_order'); // default: tanggal_order
-        $sortOrder = $request->get('sort_order', 'desc');    // default: desc
+        // Sorting logic
+        $sort = $request->get('sort', 'latest'); // default to latest
 
-        $allowedSorts = [
-            'tanggal_order',
-            'jumlah_order',
-            'status_order',
-            'supplier.nama',
-            'item.nama_barang',
-            'nomor_nota',
-        ];
-
-        // Cek apakah pengurutan berdasarkan nama supplier atau item
-        if (in_array($sortBy, $allowedSorts)) {
-            if ($sortBy === 'supplier.nama') {
-                $query->whereHas('supplier', function ($q) use ($sortOrder) {
-                    $q->orderBy('nama', $sortOrder);
-                });
-            } elseif ($sortBy === 'item.nama_barang') {
-                $query->whereHas('item', function ($q) use ($sortOrder) {
-                    $q->orderBy('nama_barang', $sortOrder);
-                });
-            } else {
-                $query->orderBy($sortBy, $sortOrder);
-            }
+        if ($sort === 'latest') {
+            $query->orderBy('tanggal_order', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('tanggal_order', 'asc');
+        } elseif ($sort === 'nomor_order_asc') {
+            $query->orderBy('nomor_order', 'asc');
+        } elseif ($sort === 'nomor_order_desc') {
+            $query->orderBy('nomor_order', 'desc');
+        } else {
+            // fallback default
+            $query->orderBy('tanggal_order', 'desc');
         }
 
-        // Ambil data dengan pagination
-        $orders = $query->paginate(10)->appends($request->query());
+        $orders = $query->paginate(10)->appends(request()->query());
 
         return view('pages.order.index', compact('orders'));
     }
 
-
-
-    // Menampilkan form untuk membuat order
     public function create()
     {
-        $suppliers = Supplier::all();  // Menampilkan daftar supplier
-        return view('pages.order.create', compact('suppliers'));
+        $suppliers = Supplier::all();
+
+        // Ambil nomor order terakhir
+        $lastOrder = Order::orderBy('nomor_order', 'desc')->first();
+        $lastNomorOrder = $lastOrder ? intval(substr($lastOrder->nomor_order, -4)) : 0; // Ambil 4 digit terakhir
+        $nextNomorOrder = 'ORD-' . str_pad($lastNomorOrder + 1, 4, '0', STR_PAD_LEFT); // Menambah 1 pada nomor order terakhir
+
+        return view('pages.order.create', compact('suppliers', 'nextNomorOrder'));
     }
 
-    // Menyimpan data order baru
+
     public function store(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
-            'nomor_nota' => 'required|string|max:50',
             'supplier_id' => 'required|exists:suppliers,kode_supplier',
+            'tanggal_order' => 'required|date',
             'items' => 'required|array',
             'items.*.item_id' => 'required|exists:items,kode_barang',
             'items.*.jumlah_order' => 'required|integer|min:1',
             'items.*.catatan' => 'nullable|string|max:255',
         ]);
 
-        // Convert nomor_nota to uppercase
-        $nomorNotaUpper = strtoupper($validated['nomor_nota']);
+        // Generate nomor_order yang unik
+        $lastNomorOrder = Order::orderBy('nomor_order', 'desc')->first();
+        $lastNomorOrder = $lastNomorOrder ? intval(substr($lastNomorOrder->nomor_order, -4)) : 0;
+        $newNomorOrder = 'ORD-' . str_pad($lastNomorOrder + 1, 4, '0', STR_PAD_LEFT);
 
-        // Insert or ignore transaction record for nomor_nota
-        \App\Models\Transaction::firstOrCreate([
-            'nomor_nota' => $nomorNotaUpper,
-        ]);
+        // Periksa apakah nomor order dengan supplier yang sama dan item yang sama sudah ada
+        foreach ($validated['items'] as $item) {
+            $existingOrder = Order::where('nomor_order', $newNomorOrder)
+                ->where('supplier_id', $validated['supplier_id'])
+                ->where('kode_barang', $item['item_id'])
+                ->exists();
+            
+            if ($existingOrder) {
+                return redirect()->route('order.create')->with('error', 'Barang dengan nomor order ini sudah ada.');
+            }
+        }
 
+        // Loop untuk setiap item yang dipilih dan buat order
         foreach ($validated['items'] as $item) {
             $itemData = Item::find($item['item_id']);
 
+            // Cek apakah item ada di database
             if (!$itemData) {
                 return redirect()->route('order.create')->with('error', 'Item tidak ditemukan.');
             }
 
-            // Check for duplicate order with same nomor_nota and kode_barang
-            $existingOrder = Order::where('nomor_nota', $nomorNotaUpper)
-                ->where('kode_barang', $item['item_id'])
-                ->first();
-
-            if ($existingOrder) {
-                return redirect()->route('order.create')->with('error', 'Barang sudah pernah dipesan dengan nomor nota yang sama.');
-            }
-
+            // Simpan order baru untuk setiap item
             Order::create([
-                'nomor_nota' => $nomorNotaUpper,  // Menyimpan nomor nota dalam uppercase
+                'nomor_order' => $newNomorOrder,
                 'supplier_id' => $validated['supplier_id'],
                 'kode_barang' => $item['item_id'],
                 'jumlah_order' => $item['jumlah_order'],
-                'tanggal_order' => now(),
+                'tanggal_order' => $validated['tanggal_order'],
                 'status_order' => 'pending',
                 'catatan' => $item['catatan'] ?? null,
             ]);
@@ -126,15 +118,15 @@ class OrderController extends Controller
         return redirect()->route('order.index')->with('success', 'Order berhasil dibuat.');
     }
 
-    
+
+
     public function complete(Request $request, Order $order)
     {
         $request->validate([
-            'jumlah_masuk' => 'required|integer|min:1',  // Validasi jumlah barang masuk
+            'jumlah_masuk' => 'required|integer|min:1',
             'catatan' => 'nullable|string|max:255',
         ]);
 
-        // Validasi apakah order tersebut masih berstatus 'pending'
         if ($order->status_order !== 'pending') {
             return response()->json([
                 'success' => false,
@@ -142,24 +134,21 @@ class OrderController extends Controller
             ]);
         }
 
-        // Mengupdate status order menjadi 'selesai'
         $order->status_order = 'selesai';
-        $order->tanggal_selesai = now();  // Set tanggal selesai
-        $order->catatan = $request->catatan;  // Menambahkan catatan jika ada
-        $order->save();  // Simpan perubahan pada order
+        $order->tanggal_selesai = now();
+        $order->catatan = $request->catatan;
+        $order->save();
 
-        // Update stok barang yang terkait dengan order ini
-        $item = $order->item;  // Ambil item terkait dengan order
-        $item->stok += $request->jumlah_masuk;  // Tambah stok barang
-        $item->save();  // Simpan perubahan stok barang
+        $item = $order->item;
+        $item->stok += $request->jumlah_masuk;
+        $item->save();
 
-        // Menambahkan riwayat barang masuk di StockEntry
         StockEntry::create([
             'kode_barang' => $order->kode_barang,
-            'nomor_nota' => $order->nomor_nota,  // Menambahkan nomor_nota dari order
-            'stok_masuk' => $request->jumlah_masuk,  // Jumlah barang masuk
-            'tanggal_masuk' => now(),  // Tanggal masuk barang
-            'keterangan' => $request->catatan,  // Menambahkan keterangan jika ada
+            'nomor_nota' => $order->nomor_nota,
+            'stok_masuk' => $request->jumlah_masuk,
+            'tanggal_masuk' => now(),
+            'keterangan' => $request->catatan,
         ]);
 
         return response()->json([
@@ -168,32 +157,95 @@ class OrderController extends Controller
         ]);
     }
 
-    public function cancel(Request $request, $id)
+    public function cancel(Request $request, $nomor_order)
     {
-        // Temukan order berdasarkan ID yang diberikan
-        $order = Order::findOrFail($id);
+        // Ambil semua order berdasarkan nomor_order
+        $orders = Order::where('nomor_order', $nomor_order)->get();
 
-        // Pastikan status order adalah 'pending' sebelum bisa dibatalkan
-        if ($order->status_order !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Pesanan tidak dapat dibatalkan, status tidak sesuai.'
-            ]);
+        // Periksa apakah ada pesanan dengan status 'pending'
+        $orders->each(function ($order) {
+            if ($order->status_order !== 'pending') {
+                return redirect()->route('order.index')->with('error', 'Pesanan tidak dapat dibatalkan, status tidak sesuai.');
+            }
+        });
+
+        // Pembatalan semua order dalam pesanan
+        foreach ($orders as $order) {
+            $order->status_order = 'dibatalkan';
+            $order->catatan = $request->catatan; // Menyimpan catatan alasan pembatalan
+            $order->save();
         }
 
-        // Update status order menjadi 'dibatalkan'
-        $order->status_order = 'dibatalkan';
-        $order->catatan = $request->catatan;  // Menambahkan catatan pembatalan jika ada
-        $order->save();  // Simpan perubahan status
-
-        // Kembalikan response sukses
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan berhasil dibatalkan'
-        ]);
+        return redirect()->route('order.index')->with('success', 'Semua item dalam pesanan telah dibatalkan.');
     }
 
 
 
+    public function showBatchComplete($nomor_order)
+    {
+        $orders = Order::with(['supplier', 'item'])
+            ->where('nomor_order', $nomor_order)
+            ->where('status_order', 'pending')
+            ->orderBy('tanggal_order', 'asc')
+            ->get();
 
+        return view('pages.order.batch_complete', compact('orders', 'nomor_order'));
+    }
+
+    public function batchComplete(Request $request, $nomor_order)
+    {
+        $validated = $request->validate([
+            'orders' => 'required|array',
+            'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
+            'orders.*.jumlah_masuk' => 'required|integer|min:0',
+            'orders.*.catatan' => 'nullable|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($validated['orders'] as $orderData) {
+                $order = Order::where('nomor_order', $orderData['nomor_order'])->first();
+                if (!$order || $order->status_order !== 'pending') {
+                    throw new \Exception("Order nomor {$orderData['nomor_order']} tidak dapat diselesaikan.");
+                }
+
+                $jumlahMasuk = $orderData['jumlah_masuk'];
+                if ($jumlahMasuk > $order->jumlah_order) {
+                    throw new \Exception("Jumlah masuk untuk Order nomor {$orderData['nomor_order']} tidak boleh lebih dari jumlah order.");
+                }
+
+                $order->status_order = 'selesai';
+                $order->tanggal_selesai = now();
+                $order->catatan = $orderData['catatan'] ?? null;
+                $order->save();
+
+                $item = $order->item;
+                $item->stok += $jumlahMasuk;
+                $item->save();
+
+                StockEntry::create([
+                    'kode_barang' => $order->kode_barang,
+                    'nomor_nota' => null,
+                    'stok_masuk' => $jumlahMasuk,
+                    'tanggal_masuk' => now(),
+                    'keterangan' => $orderData['catatan'] ?? null,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Semua order berhasil diselesaikan.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyelesaikan order: ' . $e->getMessage(),
+            ]);
+        }
+    }
 }

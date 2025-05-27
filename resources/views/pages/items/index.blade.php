@@ -21,9 +21,6 @@
                 <a href="{{ route('item.create') }}" class="btn btn-primary">
                     + Tambah Barang
                 </a>
-                <a href="{{ route('category.index') }}" class="btn btn-success">
-                    <i class="fas fa-tags"></i> Tambah Kategori
-                </a>
             </div>
         </div>
 
@@ -42,7 +39,7 @@
                     return ['sort_by' => $column, 'sort_order' => 'asc'];
                 if ($currentSortOrder === 'asc')
                     return ['sort_by' => $column, 'sort_order' => 'desc'];
-                return [];
+                return ['sort_by' => null, 'sort_order' => null];
             }
         @endphp
 
@@ -52,7 +49,7 @@
                 <table class="table table-bordered table-hover text-center align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
+                            <th>Kode Barang</th>
                             <th>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="mx-auto">Nama Barang</span>
@@ -60,20 +57,6 @@
                                     <a
                                         href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                         @if(request('sort_by') === 'nama_barang')
-                                            <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
-                                        @else
-                                            <i class="fas fa-sort"></i>
-                                        @endif
-                                    </a>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="mx-auto">Kategori</span>
-                                    @php $nextSort = next_sort_state('category.nama'); @endphp
-                                    <a
-                                        href="{{ route('item.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                        @if(request('sort_by') === 'category.nama')
                                             <i class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : 'down' }}"></i>
                                         @else
                                             <i class="fas fa-sort"></i>
@@ -118,7 +101,6 @@
                             <tr>
                                 <td>{{ $item->kode_barang }}</td>
                                 <td>{{ $item->nama_barang }}</td>
-                                <td><span class="badge bg-primary">{{ $item->category->nama ?? 'Tidak ada' }}</span></td>
                                 <td>{{ $item->stok }}</td>
                                 <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                                 <td>
@@ -213,6 +195,6 @@
             @if(session('error'))
                 Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}' });
             @endif
-        });
+                });
     </script>
 @endpush

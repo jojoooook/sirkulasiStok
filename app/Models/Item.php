@@ -20,17 +20,11 @@ class Item extends Model
     protected $fillable = [
         'kode_barang',
         'nama_barang',
-        'category_id',
         'stok',
         'harga', 
         'gambar',
         'supplier_id',
     ];
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
 
     public function supplier()
     {

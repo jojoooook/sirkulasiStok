@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    public function transaction()
-    {
-        return $this->belongsTo(Transaction::class, 'nomor_nota', 'nomor_nota');
-    }
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
+        'nomor_order',
         'supplier_id', 
         'kode_barang', 
-        'nomor_nota',
         'jumlah_order', 
         'tanggal_order', 
         'status_order', 
@@ -22,10 +22,9 @@ class Order extends Model
     ];
 
     public function supplier()
-{
-    return $this->belongsTo(Supplier::class, 'supplier_id', 'kode_supplier');
-}
-
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'kode_supplier');
+    }
 
     public function item()
     {

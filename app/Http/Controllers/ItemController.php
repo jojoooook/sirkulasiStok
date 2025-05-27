@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
-use App\Models\Category;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +11,7 @@ class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Item::with('category');
+        $query = Item::query();
 
         // Search
         if ($request->filled('search')) {
@@ -20,26 +19,17 @@ class ItemController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'like', "%{$search}%")
                 ->orWhere('stok', 'like', "%{$search}%")
-                ->orWhere('harga', 'like', "%{$search}%")
-                ->orWhereHas('category', function ($q2) use ($search) {
-                    $q2->where('nama', 'like', "%{$search}%");
-                });
+                ->orWhere('harga', 'like', "%{$search}%");
             });
         }
 
         // Sorting
         $sortBy = $request->get('sort_by', 'kode_barang');
         $sortOrder = $request->get('sort_order', 'asc');
-        $allowedSorts = ['kode_barang', 'nama_barang', 'stok', 'harga', 'category.nama'];
+        $allowedSorts = ['kode_barang', 'nama_barang', 'stok', 'harga'];
 
         if (in_array($sortBy, $allowedSorts)) {
-            if ($sortBy === 'category.nama') {
-                $query->join('categories', 'items.category_id', '=', 'categories.id')
-                    ->orderBy('categories.nama', $sortOrder)
-                    ->select('items.*');
-            } else {
-                $query->orderBy($sortBy, $sortOrder);
-            }
+            $query->orderBy($sortBy, $sortOrder);
         }
 
         $items = $query->paginate(10)->appends($request->all());
@@ -51,13 +41,10 @@ class ItemController extends Controller
         return view('pages.items.index', compact('items', 'sortBy', 'sortOrder'));
     }
 
-
-
     public function create()
     {
-        $categories = Category::all();
         $suppliers = Supplier::all();
-        return view('pages.items.create', compact('categories', 'suppliers'));
+        return view('pages.items.create', compact('suppliers'));
     }
 
     public function store(Request $request)
@@ -65,7 +52,6 @@ class ItemController extends Controller
         $validated = $request->validate([
             'kode_barang' => 'required|string|max:255|unique:items,kode_barang',
             'nama_barang' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
             'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
@@ -84,18 +70,15 @@ class ItemController extends Controller
     public function edit($kode_barang)
     {
         $item = Item::findOrFail($kode_barang);
-        $categories = Category::all();
         $suppliers = Supplier::all();
-        return view('pages.items.edit', compact('item', 'categories', 'suppliers'));
+        return view('pages.items.edit', compact('item', 'suppliers'));
     }
-
 
     public function update(Request $request, $kode_barang)
     {
         $validated = $request->validate([
             'kode_barang' => 'required|string|max:255|unique:items,kode_barang,' . $kode_barang . ',kode_barang',
             'nama_barang' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
             'supplier_id' => 'nullable|exists:suppliers,kode_supplier',
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',

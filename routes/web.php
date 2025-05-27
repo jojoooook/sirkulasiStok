@@ -28,7 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
         // Admin bisa mengakses semua route
         Route::resource('item', ItemController::class);
-        Route::resource('category', CategoryController::class)->except(['show']);
+        // Removed category routes as per request
+        // Route::resource('category', CategoryController::class)->except(['show']);
 
         // StockEntryController (Barang Masuk)
         Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
@@ -54,6 +55,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/order', [OrderController::class, 'store'])->name('order.store');
         Route::patch('/order/{order}', [OrderController::class, 'complete'])->name('order.complete');
         Route::patch('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+        Route::get('/order/{nomor_order}/batch-complete', [OrderController::class, 'showBatchComplete'])->name('order.showBatchComplete');
+        Route::patch('/order/{nomor_order}/batch-complete', [OrderController::class, 'batchComplete'])->name('order.batchComplete');
         Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier'])->name('get-items');
 
         // SettingController

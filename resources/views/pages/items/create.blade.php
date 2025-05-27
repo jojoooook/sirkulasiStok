@@ -24,16 +24,6 @@
             </div>
 
             <div class="mb-3">
-                <label for="category_id" class="form-label">Kategori</label>
-                <select class="form-control" id="category_id" name="category_id" required>
-                    <option value="">Pilih Kategori</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-3">
                 <label for="supplier_id" class="form-label">Pilih Supplier</label>
                 <select class="form-control" id="supplier_id" name="supplier_id">
                     <option value="">Pilih Supplier</option>
@@ -68,11 +58,6 @@
         $(document).ready(function () {
             $('#supplier_id').select2({
                 placeholder: "Pilih Supplier",
-                allowClear: true
-            });
-
-            $('#category_id').select2({
-                placeholder: "Pilih Kategori",
                 allowClear: true
             });
 

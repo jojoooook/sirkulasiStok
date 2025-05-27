@@ -33,18 +33,6 @@
             </div>
 
             <div class="mb-3">
-                <label for="category_id" class="form-label">Kategori</label>
-                <select class="form-control" id="category_id" name="category_id" required>
-                    <option value="">Pilih Kategori</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ $item->category_id == $category->id ? 'selected' : '' }}>
-                            {{ $category->nama }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-3">
                 <label for="supplier_id" class="form-label">Pilih Supplier</label>
                 <select class="form-control" id="supplier_id" name="supplier_id">
                     <option value="">Pilih Supplier</option>
@@ -80,14 +68,9 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            // Initialize select2 for supplier and category dropdown
+            // Initialize select2 for supplier dropdown
             $('#supplier_id').select2({
                 placeholder: "Pilih Supplier",
-                allowClear: true
-            });
-
-            $('#category_id').select2({
-                placeholder: "Pilih Kategori",
                 allowClear: true
             });
 

@@ -16,7 +16,6 @@ class CreateItemsTable extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->string('kode_barang')->primary();
             $table->string('nama_barang');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->integer('stok');
             $table->double('harga', 10, 2);
             $table->string('gambar')->nullable();
