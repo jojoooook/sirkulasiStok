@@ -14,11 +14,6 @@
                     </button>
                 </div>
             </form>
-            <div class="d-flex gap-2">
-                <a href="{{ route('stock-entry.create') }}" class="btn btn-primary">
-                    + Tambah Barang Masuk
-                </a>
-            </div>
         </div>
         @php
             function next_sort_state($column)
@@ -44,6 +39,11 @@
             <table class="table table-hover table-bordered shadow-sm">
                 <thead class="thead-light">
                     <tr>
+                        <th>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Supplier</span>
+                            </div>
+                        </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Nama Barang</span>
@@ -77,11 +77,11 @@
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>Nomor Nota</span>
-                                @php $nextSort = next_sort_state('nomor_nota'); @endphp
+                                <span>Nomor Invoice</span>
+                                @php $nextSort = next_sort_state('nomor_invoice'); @endphp
                                 <a
                                     href="{{ route('stock-entry.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                    @if(request('sort_by') === 'nomor_nota')
+                                    @if(request('sort_by') === 'nomor_invoice')
                                         <i
                                             class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
                                     @else
@@ -140,11 +140,12 @@
                 <tbody>
                     @foreach($stockEntries as $entry)
                         <tr>
-                            <td>{{ $entry->item->nama_barang }}</td>
+                            <td>{{ $entry->supplier_nama ?? '-' }}</td>
+                            <td>{{ $entry->nama_barang ?? '-' }}</td>
                             <td>{{ $entry->kode_barang }}</td>
-                            <td>{{ $entry->nomor_nota ?? '-' }}</td>
+                            <td>{{ $entry->nomor_invoice ?? '-' }}</td>
                             <td>{{ $entry->stok_masuk }}</td>
-                            <td>{{ \Carbon\Carbon::parse($entry->tanggal_masuk)->format('d-m-Y H:i') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($entry->tanggal_masuk)->format('d-m-Y') }}</td>
                             <td>{{ $entry->keterangan ?? '-' }}</td>
                         </tr>
                     @endforeach

@@ -8,6 +8,15 @@
 
         <form id="batchCompleteForm">
             @csrf
+            <div class="mb-3">
+                <label for="nomor_invoice" class="form-label">Nomor Invoice</label>
+                <input type="text" id="nomor_invoice" name="nomor_invoice" class="form-control"
+                    placeholder="Masukkan nomor invoice" required oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="mb-3">
+                <label for="tanggal_invoice" class="form-label">Tanggal Invoice</label>
+                <input type="date" id="tanggal_invoice" name="tanggal_invoice" class="form-control" required>
+            </div>
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -32,6 +41,8 @@
                                     required>
                                 <input type="hidden" name="orders[{{ $loop->index }}][nomor_order]"
                                     value="{{ $order->nomor_order }}">
+                                <input type="hidden" name="orders[{{ $loop->index }}][kode_barang]"
+                                    value="{{ $order->kode_barang }}">
                             </td>
                             <td>
                                 <input type="text" name="orders[{{ $loop->index }}][catatan]" class="form-control"

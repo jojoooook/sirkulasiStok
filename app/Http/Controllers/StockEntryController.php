@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\StockEntry;
-use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class StockEntryController extends Controller
@@ -14,9 +13,10 @@ class StockEntryController extends Controller
     {
         $query = StockEntry::query();
 
-        // Join dengan tabel items agar bisa sort berdasarkan nama_barang
+        // Join dengan tabel items dan suppliers agar bisa sort berdasarkan nama_barang dan nama supplier
         $query->join('items', 'stock_entries.kode_barang', '=', 'items.kode_barang')
-            ->select('stock_entries.*'); // penting agar pagination tetap berjalan
+            ->join('suppliers', 'stock_entries.supplier_id', '=', 'suppliers.kode_supplier')
+            ->select('stock_entries.*', 'items.nama_barang', 'suppliers.nama as supplier_nama'); // penting agar pagination tetap berjalan
 
         // Pencarian
         if (request('search')) {
@@ -30,6 +30,7 @@ class StockEntryController extends Controller
         // Validasi kolom sort agar aman
         $sortableColumns = [
             'items.nama_barang',
+            'suppliers.nama',
             'stok_masuk',
             'tanggal_masuk',
             'keterangan',
@@ -39,17 +40,9 @@ class StockEntryController extends Controller
 
         $query->orderBy($sortColumn, $sortOrder);
 
-        $stockEntries = $query->with('item')->paginate(10)->appends(request()->except('page'));
+        $stockEntries = $query->paginate(10)->appends(request()->except('page'));
 
         return view('pages.stock-entry.index', compact('stockEntries', 'sortBy', 'sortOrder'));
-    }
-
-
-    // Menampilkan form untuk mencatat barang masuk
-    public function create()
-    {
-        $items = Item::all(); // Menampilkan daftar barang yang ada
-        return view('pages.stock-entry.create', compact('items'));
     }
 
     // Menyimpan data barang masuk
@@ -57,18 +50,9 @@ class StockEntryController extends Controller
     {
         $validated = $request->validate([
             'kode_barang' => 'required|exists:items,kode_barang',  // Validasi kode barang
-            'nomor_nota' => 'nullable|string|max:255',  // Nomor nota opsional, bisa kosong
             'stok_masuk' => 'required|integer|min:1',  // Validasi stok masuk
             'keterangan' => 'nullable|string|max:255',
         ]);
-
-        // Jika nomor_nota diisi, cek apakah ada di tabel transaction
-        if (!empty($validated['nomor_nota'])) {
-            $exists = Transaction::where('nomor_nota', $validated['nomor_nota'])->exists();
-            if (!$exists) {
-                return redirect()->back()->withInput()->withErrors(['nomor_nota' => 'Nomor nota tidak ditemukan di tabel transaksi.']);
-            }
-        }
 
         // Menambah stok barang
         $item = Item::findOrFail($validated['kode_barang']);
@@ -77,7 +61,6 @@ class StockEntryController extends Controller
         // Simpan riwayat barang masuk
         StockEntry::create([
             'kode_barang' => $validated['kode_barang'],
-            'nomor_nota' => $validated['nomor_nota'],  // Nomor nota yang diterima
             'stok_masuk' => $validated['stok_masuk'],
             'tanggal_masuk' => now(),
             'keterangan' => $validated['keterangan'],

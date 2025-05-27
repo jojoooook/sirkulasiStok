@@ -21,9 +21,11 @@ return new class extends Migration
             $table->enum('status_order', ['pending', 'dibatalkan', 'selesai'])->default('pending');
             $table->timestamp('tanggal_selesai')->nullable(); 
             $table->text('catatan')->nullable();
+            $table->string('nomor_invoice')->nullable();
             $table->timestamps();
 
             //$table->unique('nomor_order');
+            // $table->unique('nomor_invoice');
             $table->foreign('supplier_id')->references('kode_supplier')->on('suppliers')->onDelete('cascade');
             $table->foreign('kode_barang')->references('kode_barang')->on('items')->onDelete('cascade');
         });

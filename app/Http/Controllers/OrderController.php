@@ -118,45 +118,6 @@ class OrderController extends Controller
         return redirect()->route('order.index')->with('success', 'Order berhasil dibuat.');
     }
 
-
-
-    public function complete(Request $request, Order $order)
-    {
-        $request->validate([
-            'jumlah_masuk' => 'required|integer|min:1',
-            'catatan' => 'nullable|string|max:255',
-        ]);
-
-        if ($order->status_order !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Pesanan tidak dapat diselesaikan, status tidak sesuai.'
-            ]);
-        }
-
-        $order->status_order = 'selesai';
-        $order->tanggal_selesai = now();
-        $order->catatan = $request->catatan;
-        $order->save();
-
-        $item = $order->item;
-        $item->stok += $request->jumlah_masuk;
-        $item->save();
-
-        StockEntry::create([
-            'kode_barang' => $order->kode_barang,
-            'nomor_nota' => $order->nomor_nota,
-            'stok_masuk' => $request->jumlah_masuk,
-            'tanggal_masuk' => now(),
-            'keterangan' => $request->catatan,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan berhasil diselesaikan dan stok diperbarui.'
-        ]);
-    }
-
     public function cancel(Request $request, $nomor_order)
     {
         // Ambil semua order berdasarkan nomor_order
@@ -195,28 +156,40 @@ class OrderController extends Controller
     public function batchComplete(Request $request, $nomor_order)
     {
         $validated = $request->validate([
+            'nomor_invoice' => 'required|string|max:255',
+            'tanggal_invoice' => 'required|date',
             'orders' => 'required|array',
             'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
             'orders.*.jumlah_masuk' => 'required|integer|min:0',
             'orders.*.catatan' => 'nullable|string|max:255',
+            'orders.*.kode_barang' => 'required|string',
         ]);
+
+        // Check if nomor_invoice already exists in stock_entries
+        $existingInvoice = StockEntry::where('nomor_invoice', $validated['nomor_invoice'])->exists();
+        if ($existingInvoice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor invoice sudah ada.',
+            ]);
+        }
 
         DB::beginTransaction();
 
         try {
             foreach ($validated['orders'] as $orderData) {
-                $order = Order::where('nomor_order', $orderData['nomor_order'])->first();
+                $order = Order::where('nomor_order', $orderData['nomor_order'])
+                    ->where('kode_barang', $orderData['kode_barang'])
+                    ->first();
                 if (!$order || $order->status_order !== 'pending') {
                     throw new \Exception("Order nomor {$orderData['nomor_order']} tidak dapat diselesaikan.");
                 }
 
                 $jumlahMasuk = $orderData['jumlah_masuk'];
-                if ($jumlahMasuk > $order->jumlah_order) {
-                    throw new \Exception("Jumlah masuk untuk Order nomor {$orderData['nomor_order']} tidak boleh lebih dari jumlah order.");
-                }
+                // Allow jumlahMasuk to be more or less than jumlah_order, no exception thrown
 
                 $order->status_order = 'selesai';
-                $order->tanggal_selesai = now();
+                $order->tanggal_selesai = $validated['tanggal_invoice'];
                 $order->catatan = $orderData['catatan'] ?? null;
                 $order->save();
 
@@ -224,13 +197,38 @@ class OrderController extends Controller
                 $item->stok += $jumlahMasuk;
                 $item->save();
 
-                StockEntry::create([
-                    'kode_barang' => $order->kode_barang,
-                    'nomor_nota' => null,
-                    'stok_masuk' => $jumlahMasuk,
-                    'tanggal_masuk' => now(),
-                    'keterangan' => $orderData['catatan'] ?? null,
-                ]);
+                $stockEntry = StockEntry::where('supplier_id', $order->supplier_id)
+                    ->where('nomor_invoice', $validated['nomor_invoice'])
+                    ->where('kode_barang', $order->kode_barang)
+                    ->first();
+
+                if ($stockEntry) {
+                    $stockEntry->stok_masuk += $jumlahMasuk;
+                    $stockEntry->tanggal_masuk = $validated['tanggal_invoice'];
+                    $stockEntry->keterangan = $orderData['catatan'] ?? null;
+                    $stockEntry->save();
+                } else {
+                $stockEntry = StockEntry::where('supplier_id', $order->supplier_id)
+                    ->where('nomor_invoice', $validated['nomor_invoice'])
+                    ->where('kode_barang', $order->kode_barang)
+                    ->first();
+
+                if ($stockEntry) {
+                    $stockEntry->stok_masuk += $jumlahMasuk;
+                    $stockEntry->tanggal_masuk = $validated['tanggal_invoice'];
+                    $stockEntry->keterangan = $orderData['catatan'] ?? null;
+                    $stockEntry->save();
+                } else {
+                    StockEntry::create([
+                        'supplier_id' => $order->supplier_id,
+                        'kode_barang' => $order->kode_barang,
+                        'nomor_invoice' => $validated['nomor_invoice'],
+                        'stok_masuk' => $jumlahMasuk,
+                        'tanggal_masuk' => $validated['tanggal_invoice'],
+                        'keterangan' => $orderData['catatan'] ?? null,
+                    ]);
+                }
+                }
             }
 
             DB::commit();

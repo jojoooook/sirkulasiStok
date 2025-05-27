@@ -11,14 +11,12 @@ class CreateStockExitsTable extends Migration
         Schema::create('stock_exits', function (Blueprint $table) {
             $table->id();  
             $table->string('kode_barang');  
-            $table->string('nomor_nota')->nullable();
             $table->integer('stok_keluar');  
             $table->timestamp('tanggal_keluar')->useCurrent();  
             $table->string('keterangan')->nullable();  
             $table->timestamps();  
 
             $table->foreign('kode_barang')->references('kode_barang')->on('items')->onDelete('cascade');
-            $table->foreign('nomor_nota')->references('nomor_nota')->on('transactions')->onDelete('cascade');
         });
     }
 

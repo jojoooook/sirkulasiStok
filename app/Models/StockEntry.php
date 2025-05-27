@@ -7,15 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockEntry extends Model
 {
-    public function transaction()
-    {
-        return $this->belongsTo(Transaction::class, 'nomor_nota', 'nomor_nota');
-    }
     use HasFactory;
 
     protected $fillable = [
+        'supplier_id',
         'kode_barang', 
-        'nomor_nota',
+        'nomor_invoice',
         'stok_masuk', 
         'tanggal_masuk', 
         'keterangan', 

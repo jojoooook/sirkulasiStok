@@ -2,14 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomepageController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StockEntryController;
 use App\Http\Controllers\StockExitController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\NotaController;
 use App\Http\Controllers\LoginController;
 use App\Http\Middleware\RoleMiddleware;
 
@@ -28,12 +26,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
         // Admin bisa mengakses semua route
         Route::resource('item', ItemController::class);
-        // Removed category routes as per request
-        // Route::resource('category', CategoryController::class)->except(['show']);
 
         // StockEntryController (Barang Masuk)
         Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
-        Route::get('/stock-entry/create', [StockEntryController::class, 'create'])->name('stock-entry.create');
         Route::post('/stock-entry', [StockEntryController::class, 'store'])->name('stock-entry.store');
 
         // StockExitController (Barang Keluar)
@@ -67,11 +62,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
         Route::patch('/setting/{id}/toggle-active', [SettingController::class, 'toggleActive'])->name('setting.toggleActive');
         Route::post('/setting/reset-password/{id}', [SettingController::class, 'resetPassword'])->name('setting.resetPassword');
-
-        // NotaController (Daftar Nota)
-        Route::get('/nota', [NotaController::class, 'index'])->name('nota.index');
-        Route::post('/nota', [NotaController::class, 'store'])->name('nota.store');
-        Route::delete('/nota/{id}', [NotaController::class, 'destroy'])->name('nota.destroy');
     });
 
     // Karyawan hanya bisa mengakses Dashboard, Daftar Barang, dan Barang Keluar
@@ -83,4 +73,3 @@ Route::middleware('auth')->group(function () {
     });
 
 });
-
