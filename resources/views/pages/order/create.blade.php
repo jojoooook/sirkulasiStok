@@ -13,8 +13,9 @@
             <div class="mb-3">
                 <label for="tanggal_order" class="form-label">Tanggal Order</label>
                 <input type="date" name="tanggal_order" id="tanggal_order" class="form-control"
-                    value="{{ old('tanggal_order') }}" required>
+                    value="{{ old('tanggal_order', date('Y-m-d')) }}" required>
             </div>
+
             <div class="mb-3">
                 <label for="supplier_id" class="form-label">Pilih Supplier</label>
                 <select name="supplier_id" id="supplier_id" class="form-control select2" required>
@@ -160,29 +161,29 @@
             $('#add-item').on('click', function () {
                 itemCount++;
                 let newItem = `
-                                            <div class="order-item-container card p-3 mb-3">
-                                            <div class="row">
-                                            <div class="col-md-6">
-                                            <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
-                                            <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
-                                            <option value="">Pilih Barang</option>
-                                            </select>
-                                            <small class="text-muted" id="stock_info_${itemCount}"></small>
-                                            </div>
-                                            <div class="col-md-4">
-                                            <label for="jumlah_order" class="form-label">Jumlah Order</label>
-                                            <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
-                                            </div>
-                                            <div class="col-md-4">
-                                            <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
-                                            <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
-                                            </div>
-                                            <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
-                                            </div>
-                                            </div>
-                                            </div>
-                                            `;
+                                                            <div class="order-item-container card p-3 mb-3">
+                                                            <div class="row">
+                                                            <div class="col-md-6">
+                                                            <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
+                                                            <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
+                                                            <option value="">Pilih Barang</option>
+                                                            </select>
+                                                            <small class="text-muted" id="stock_info_${itemCount}"></small>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                            <label for="jumlah_order" class="form-label">Jumlah Order</label>
+                                                            <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                            <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
+                                                            <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
+                                                            </div>
+                                                            <div class="col-md-2 d-flex align-items-end">
+                                                            <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
+                                                            </div>
+                                                            </div>
+                                                            </div>
+                                                            `;
                 $('#order-items').append(newItem);
                 initItemSelect();
                 onItemSelectChange();
@@ -264,6 +265,45 @@
                     });
                 }
             }
+
+            // Add SweetAlert confirmation on form submit
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+
+                const supplierName = $('#supplier_id option:selected').text();
+                const orderDate = $('#tanggal_order').val();
+                const orderNumber = $('#nomor_order').val();
+
+                let itemsList = '';
+                $('.order-item-container').each(function () {
+                    const itemName = $(this).find('.item-select option:selected').text();
+                    const quantity = $(this).find('input[name$="[jumlah_order]"]').val();
+                    if (itemName && quantity) {
+                        itemsList += `- ${itemName}: ${quantity} unit\n`;
+                    }
+                });
+
+                Swal.fire({
+                    title: 'Konfirmasi Order',
+                    html: `<div class="text-left">
+                                    <p>Nomor Order: ${orderNumber}</p>
+                                    <p>Tanggal: ${orderDate}</p>
+                                    <p>Supplier: ${supplierName}</p>
+                                    <p>Detail Pesanan:</p>
+                                    <pre>${itemsList}</pre>
+                                    </div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Buat Order',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
         });
     </script>
+
 @endpush

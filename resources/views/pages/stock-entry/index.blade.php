@@ -41,11 +41,6 @@
                     <tr>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>Supplier</span>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="d-flex justify-content-between align-items-center">
                                 <span>Nama Barang</span>
                                 @php $nextSort = next_sort_state('items.nama_barang'); @endphp
                                 <a
@@ -77,41 +72,11 @@
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>Nomor Invoice</span>
-                                @php $nextSort = next_sort_state('nomor_invoice'); @endphp
-                                <a
-                                    href="{{ route('stock-entry.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                    @if(request('sort_by') === 'nomor_invoice')
-                                        <i
-                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
-                                    @else
-                                        <i class="fas fa-sort"></i>
-                                    @endif
-                                </a>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="d-flex justify-content-between align-items-center">
                                 <span>Jumlah Stok Masuk</span>
                                 @php $nextSort = next_sort_state('stok_masuk'); @endphp
                                 <a
                                     href="{{ route('stock-entry.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
                                     @if(request('sort_by') === 'stok_masuk')
-                                        <i
-                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
-                                    @else
-                                        <i class="fas fa-sort"></i>
-                                    @endif
-                                </a>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>Tanggal Masuk</span>
-                                @php $nextSort = next_sort_state('tanggal_masuk'); @endphp
-                                <a
-                                    href="{{ route('stock-entry.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
-                                    @if(request('sort_by') === 'tanggal_masuk')
                                         <i
                                             class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
                                     @else
@@ -138,18 +103,29 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($stockEntries as $entry)
-                        <tr>
-                            <td>{{ $entry->supplier_nama ?? '-' }}</td>
-                            <td>{{ $entry->nama_barang ?? '-' }}</td>
-                            <td>{{ $entry->kode_barang }}</td>
-                            <td>{{ $entry->nomor_invoice ?? '-' }}</td>
-                            <td>{{ $entry->stok_masuk }}</td>
-                            <td>{{ \Carbon\Carbon::parse($entry->tanggal_masuk)->format('d-m-Y') }}</td>
-                            <td>{{ $entry->keterangan ?? '-' }}</td>
+                    @foreach($groupedEntries as $groupKey => $entries)
+                        @php
+                            list($nomorInvoice, $supplierNama) = explode('|', $groupKey);
+                        @endphp
+                        <tr class="table-primary">
+                            <td colspan="6">
+                                <strong>Nomor Invoice:</strong> {{ $nomorInvoice }} &nbsp;&nbsp;
+                                <strong>Supplier:</strong> {{ $supplierNama }} &nbsp;&nbsp;
+                                <strong>Tanggal Masuk:</strong>
+                                {{ \Carbon\Carbon::parse($entries->first()->tanggal_masuk)->format('d-m-Y') }}
+                            </td>
                         </tr>
+                        @foreach($entries as $entry)
+                            <tr>
+                                <td>{{ $entry->nama_barang ?? '-' }}</td>
+                                <td>{{ $entry->kode_barang }}</td>
+                                <td>{{ $entry->stok_masuk }}</td>
+                                <td>{{ $entry->keterangan ?? '-' }}</td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
+
             </table>
 
             <div class="d-flex justify-content-center">

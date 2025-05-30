@@ -13,6 +13,7 @@ class StockExit extends Model
         'stok_keluar',
         'tanggal_keluar',
         'keterangan',
+        'nomor_nota',
     ];
 
     public function item()

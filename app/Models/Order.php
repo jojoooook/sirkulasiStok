@@ -18,7 +18,8 @@ class Order extends Model
         'tanggal_order', 
         'status_order', 
         'tanggal_selesai', 
-        'catatan'
+        'catatan',
+        'nomor_invoice'
     ];
 
     public function supplier()

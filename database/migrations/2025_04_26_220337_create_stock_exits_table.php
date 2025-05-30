@@ -10,6 +10,7 @@ class CreateStockExitsTable extends Migration
     {
         Schema::create('stock_exits', function (Blueprint $table) {
             $table->id();  
+            $table->string('nomor_nota');
             $table->string('kode_barang');  
             $table->integer('stok_keluar');  
             $table->timestamp('tanggal_keluar')->useCurrent();  

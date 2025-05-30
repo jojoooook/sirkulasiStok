@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index');
         Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create');
         Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store');
+        Route::get('/stock-exit/get-items', [StockExitController::class, 'getItems'])->name('stock-exit.getItems');
 
         // SupplierController
         Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');

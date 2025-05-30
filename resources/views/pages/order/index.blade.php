@@ -40,7 +40,7 @@
                             aria-controls="collapse{{ $nomorOrder }}">
                             <strong>Nomor Order:</strong> {{ $nomorOrder }} &nbsp;&nbsp;
                             <strong>Supplier:</strong> {{ $firstOrder->supplier->nama }} &nbsp;&nbsp;
-                            <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($firstOrder->tanggal_order)->format('Y-m-d') }}
+                            <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($firstOrder->tanggal_order)->format('d-m-Y') }}
                             &nbsp;&nbsp;
                             <strong>Status:</strong> {{ ucfirst($firstOrder->status_order) }}
                         </button>

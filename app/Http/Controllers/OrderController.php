@@ -191,6 +191,7 @@ class OrderController extends Controller
                 $order->status_order = 'selesai';
                 $order->tanggal_selesai = $validated['tanggal_invoice'];
                 $order->catatan = $orderData['catatan'] ?? null;
+                $order->nomor_invoice = $validated['nomor_invoice'];
                 $order->save();
 
                 $item = $order->item;

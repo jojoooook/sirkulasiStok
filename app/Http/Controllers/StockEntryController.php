@@ -42,7 +42,17 @@ class StockEntryController extends Controller
 
         $stockEntries = $query->paginate(10)->appends(request()->except('page'));
 
-        return view('pages.stock-entry.index', compact('stockEntries', 'sortBy', 'sortOrder'));
+        // Group stock entries by nomor_invoice and supplier_nama for current page items
+        $groupedEntries = $stockEntries->getCollection()->groupBy(function ($item) {
+            return $item->nomor_invoice . '|' . $item->supplier_nama;
+        });
+
+        return view('pages.stock-entry.index', [
+            'groupedEntries' => $groupedEntries,
+            'stockEntries' => $stockEntries,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+        ]);
     }
 
     // Menyimpan data barang masuk

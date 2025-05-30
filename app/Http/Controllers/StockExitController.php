@@ -13,35 +13,57 @@ class StockExitController extends Controller
     {
         $query = StockExit::query();
 
-        // Join dengan tabel items agar bisa sort berdasarkan nama_barang
-        $query->join('items', 'stock_exits.kode_barang', '=', 'items.kode_barang')
-            ->select('stock_exits.*'); // penting agar pagination tetap berjalan
-
         // Pencarian
         if ($request->has('search') && $request->search != '') {
-            $query->where('items.nama_barang', 'like', '%' . $request->search . '%');
+            $query->whereHas('item', function ($q) use ($request) {
+                $q->where('nama_barang', 'like', '%' . $request->search . '%');
+            });
         }
 
         // Sorting
-        $sortBy = $request->input('sort_by', 'tanggal_keluar'); // default diubah ke tanggal_keluar
+        $sortBy = $request->input('sort_by', 'tanggal_keluar'); // default to tanggal_keluar
         $sortOrder = $request->input('sort_order', 'desc');
 
-        // Validasi kolom sort agar aman
         $sortableColumns = [
-            'items.nama_barang',
-            'stok_keluar',
+            'nomor_nota',
             'tanggal_keluar',
-            'keterangan',
         ];
 
-        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'items.nama_barang';
+        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'tanggal_keluar';
 
         $query->orderBy($sortColumn, $sortOrder);
 
-        // Pagination dan appends untuk menjaga parameter query di URL
-        $stockExits = $query->with('item')->paginate(10)->appends($request->except('page'));
+        // Paginate the query
+        $stockExitsPaginated = $query->with('item')->paginate(10)->appends($request->except('page'));
 
-        return view('pages.stock-exit.index', compact('stockExits', 'sortBy', 'sortOrder'));
+        // Group the current page's items by nomor_nota and tanggal_keluar
+        $stockExitsGrouped = $stockExitsPaginated->getCollection()->groupBy(function ($item) {
+            return $item->nomor_nota . '|' . $item->tanggal_keluar;
+        });
+
+        // Convert grouped collection to array of objects with nomor_nota, tanggal_keluar, and items
+        $stockExits = $stockExitsGrouped->map(function ($group, $key) {
+            [$nomorNota, $tanggalKeluar] = explode('|', $key);
+            return (object)[
+                'nomor_nota' => $nomorNota,
+                'tanggal_keluar' => $tanggalKeluar,
+                'items' => $group,
+            ];
+        });
+
+        return view('pages.stock-exit.index', [
+            'stockExits' => $stockExits,
+            'stockExitsPaginated' => $stockExitsPaginated,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+        ]);
+    }
+
+    // New method to get all items with stock info for AJAX
+    public function getItems()
+    {
+        $items = Item::select('kode_barang', 'nama_barang', 'stok')->get();
+        return response()->json($items);
     }
 
 
@@ -49,37 +71,73 @@ class StockExitController extends Controller
     public function create()
     {
         $items = Item::all(); // Menampilkan daftar barang yang ada
-        return view('pages.stock-exit.create', compact('items'));
+
+        // Generate next nomor_nota as zero-padded string starting from 00001
+        $lastNota = StockExit::orderBy('nomor_nota', 'desc')->first();
+        if ($lastNota && preg_match('/^\d+$/', $lastNota->nomor_nota)) {
+            $nextNumber = intval($lastNota->nomor_nota) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        $nomorNota = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
+        return view('pages.stock-exit.create', compact('items', 'nomorNota'));
     }
 
     // Menyimpan data barang keluar
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode_barang' => 'required|exists:items,kode_barang',
-            'stok_keluar' => 'required|integer|min:1',
-            'keterangan' => 'nullable|string|max:255',
+            'items' => 'required|array',
+            'items.*.item_id' => 'required|exists:items,kode_barang',
+            'items.*.jumlah_keluar' => 'required|integer|min:1',
+            'items.*.catatan' => 'nullable|string|max:255',
+            'tanggal_keluar' => 'required|date',
         ]);
 
-        // Mengurangi stok barang
-        $item = Item::findOrFail($validated['kode_barang']);
-        if ($item->stok < $validated['stok_keluar']) {
-            return redirect()->back()->with('error', 'Stok tidak mencukupi.');
+        $tanggalKeluar = $validated['tanggal_keluar'];
+        $items = $validated['items'];
+
+        // Generate nomor_nota as zero-padded string starting from 00001
+        $lastNota = StockExit::orderBy('nomor_nota', 'desc')->first();
+        if ($lastNota && preg_match('/^\d+$/', $lastNota->nomor_nota)) {
+            $nextNumber = intval($lastNota->nomor_nota) + 1;
+        } else {
+            $nextNumber = 1;
         }
-        $item->stok -= $validated['stok_keluar'];
+        $nomorNota = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-        // Simpan riwayat barang keluar
-        StockExit::create([
-            'kode_barang' => $validated['kode_barang'],
-            'stok_keluar' => $validated['stok_keluar'],
-            'tanggal_keluar' => now(),
-            'keterangan' => $validated['keterangan'],
-        ]);
+        // Check stock availability for all items first
+        $errors = [];
+        foreach ($items as $itemData) {
+            $item = Item::where('kode_barang', $itemData['item_id'])->first();
+            if (!$item) {
+                $errors[] = "Barang dengan kode {$itemData['item_id']} tidak ditemukan.";
+                continue;
+            }
+            if ($item->stok < $itemData['jumlah_keluar']) {
+                $errors[] = "Stok tidak mencukupi untuk barang $item->nama_barang.";
+            }
+        }
+        if (!empty($errors)) {
+            return redirect()->back()->withErrors($errors)->withInput();
+        }
 
-        // Update stok barang di database
-        $item->save();
+        // Process each item
+        foreach ($items as $itemData) {
+            $item = Item::where('kode_barang', $itemData['item_id'])->first();
+            $item->stok -= $itemData['jumlah_keluar'];
+            $item->save();
 
-        // Mengirimkan pesan sukses
+            StockExit::create([
+                'nomor_nota' => $nomorNota,
+                'kode_barang' => $itemData['item_id'],
+                'stok_keluar' => $itemData['jumlah_keluar'],
+                'tanggal_keluar' => $tanggalKeluar,
+                'keterangan' => $itemData['catatan'] ?? null,
+            ]);
+        }
+
         return redirect()->route('stock-exit.index')->with('success', 'Barang keluar berhasil dicatat.');
     }
 }
