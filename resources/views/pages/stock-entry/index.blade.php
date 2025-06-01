@@ -3,22 +3,34 @@
 @section('content')
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Riwayat Barang Masuk</h1>
-        <!-- Form Pencarian -->
+
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <form action="{{ route('stock-entry.index') }}" method="GET" class="d-flex gap-2 flex-wrap align-items-center">
-                <input type="text" name="search" class="form-control me-2" placeholder="Cari Nama Barang"
-                    value="{{ request('search') }}" style="min-width: 200px;">
-                <input type="text" name="nomor_invoice" class="form-control me-2" placeholder="Cari Nomor Invoice"
-                    value="{{ request('nomor_invoice') }}" style="min-width: 150px;">
-                <input type="text" name="supplier_nama" class="form-control me-2" placeholder="Cari Supplier"
-                    value="{{ request('supplier_nama') }}" style="min-width: 150px;">
-                <input type="date" name="tanggal_masuk" class="form-control me-2" value="{{ request('tanggal_masuk') }}"
-                    style="min-width: 150px;">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i> Cari
-                </button>
-            </form>
+            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#searchFormCollapseStockEntry" aria-expanded="false"
+                aria-controls="searchFormCollapseStockEntry">
+                <i class="fas fa-filter"></i> Filter Pencarian
+            </button>
         </div>
+
+        <div class="collapse mb-3" id="searchFormCollapseStockEntry">
+            <div class="card card-body">
+                <form action="{{ route('stock-entry.index') }}" method="GET"
+                    class="d-flex gap-2 flex-wrap align-items-center">
+                    <input type="text" name="search" class="form-control" placeholder="Cari Nama Barang"
+                        value="{{ request('search') }}" style="min-width: 200px;">
+                    <input type="text" name="nomor_invoice" class="form-control" placeholder="Cari Nomor Invoice"
+                        value="{{ request('nomor_invoice') }}" style="min-width: 150px;">
+                    <input type="text" name="supplier_nama" class="form-control" placeholder="Cari Supplier"
+                        value="{{ request('supplier_nama') }}" style="min-width: 150px;">
+                    <input type="date" name="tanggal_masuk" class="form-control" value="{{ request('tanggal_masuk') }}"
+                        style="min-width: 150px;">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </form>
+            </div>
+        </div>
+
         @php
             function next_sort_state($column)
             {
@@ -140,7 +152,6 @@
 @endsection
 
 @push('scripts')
-    <!-- SweetAlert untuk pesan sukses atau error -->
     @if(session('success'))
         <script>
             Swal.fire({
@@ -164,4 +175,37 @@
             });
         </script>
     @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchFormCollapseElement = document.getElementById('searchFormCollapseStockEntry');
+            const triggerButton = document.querySelector(`button[data-bs-target="#searchFormCollapseStockEntry"]`); // Ambil tombol pemicu
+
+            if (searchFormCollapseElement && triggerButton) {
+                const urlParams = new URLSearchParams(window.location.search);
+                let hasActiveFilter = false;
+                const filterParams = ['search', 'nomor_invoice', 'supplier_nama', 'tanggal_masuk'];
+
+                for (const param of filterParams) {
+                    if (urlParams.has(param) && urlParams.get(param) !== null && urlParams.get(param).trim() !== '') {
+                        hasActiveFilter = true;
+                        break;
+                    }
+                }
+
+                if (hasActiveFilter) {
+                    // Jika filter aktif, tambahkan kelas 'show' agar elemen terbuka secara default.
+                    // Bootstrap akan menginisialisasi collapse ini dalam keadaan terbuka.
+                    searchFormCollapseElement.classList.add('show');
+                    // Perbarui atribut aria-expanded pada tombol pemicu agar sesuai dengan keadaan terbuka.
+                    triggerButton.setAttribute('aria-expanded', 'true');
+                } else {
+                    // Jika tidak ada filter aktif, pastikan elemen tertutup dan aria-expanded false.
+                    // Ini penting jika halaman dimuat ulang tanpa filter, agar elemen tidak tetap terbuka.
+                    searchFormCollapseElement.classList.remove('show');
+                    triggerButton.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
 @endpush
