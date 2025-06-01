@@ -6,16 +6,20 @@
     <div class="container mt-4">
         <h1 class="mb-4 text-center">Riwayat Order Barang</h1>
 
-        <!-- Form Search & Tambah Order -->
+        <!-- Search Form & Sorting -->
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <form action="{{ route('order.index') }}" method="GET" class="d-flex">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Cari supplier/barang"
-                        value="{{ request('search') }}">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
-                </div>
+            <form action="{{ route('order.index') }}" method="GET" class="d-flex gap-2 flex-wrap align-items-center mb-3">
+                <input type="text" name="nomor_order" class="form-control" placeholder="Cari Nomor Order"
+                    value="{{ request('nomor_order') }}" style="min-width: 150px;">
+                <input type="text" name="supplier" class="form-control" placeholder="Cari Supplier"
+                    value="{{ request('supplier') }}" style="min-width: 150px;">
+                <input type="date" name="tanggal_order" class="form-control" value="{{ request('tanggal_order') }}"
+                    style="min-width: 150px;">
+                <input type="text" name="nama_barang" class="form-control" placeholder="Cari Nama Barang"
+                    value="{{ request('nama_barang') }}" style="min-width: 200px;">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Cari
+                </button>
             </form>
             <div class="d-flex gap-2">
                 <a href="{{ route('order.create') }}" class="btn btn-primary shadow-sm">
@@ -120,48 +124,5 @@
                 </form>
             </div>
         </div>
-
+    </div>
 @endsection
-    @push('scripts')
-        <script>
-            $(document).ready(function () {
-                let selectedOrderId = null;
-
-                // Menampilkan modal konfirmasi pembatalan pesanan
-                $('.cancel-order-btn').on('click', function (e) {
-                    e.preventDefault();
-                    const form = $(this).closest('form');
-                    selectedOrderId = form.find('input[name="order_id"]').val();
-
-                    Swal.fire({
-                        title: 'Konfirmasi Pembatalan',
-                        text: 'Apakah Anda yakin ingin membatalkan pesanan ini?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, Batalkan',
-                        cancelButtonText: 'Batal',
-                        input: 'textarea', // Menambahkan input teks untuk alasan pembatalan
-                        inputPlaceholder: 'Masukkan alasan pembatalan (opsional)', // Placeholder input
-                        inputAttributes: {
-                            'aria-label': 'Masukkan alasan pembatalan',
-                            'maxlength': 255
-                        },
-                        showLoaderOnConfirm: true,
-                        preConfirm: (alasanBatal) => {
-                            if (!alasanBatal) {
-                                alasanBatal = ''; // Jika tidak ada alasan, tetap kirimkan string kosong
-                            }
-
-                            return new Promise((resolve, reject) => {
-                                // Kirim form dengan alasan pembatalan
-                                form.append('<input type="hidden" name="catatan" value="' + alasanBatal + '">');
-                                form.submit();
-                            });
-                        }
-                    });
-                });
-            });
-
-
-        </script>
-    @endpush

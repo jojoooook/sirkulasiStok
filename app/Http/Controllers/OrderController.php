@@ -31,6 +31,28 @@ class OrderController extends Controller
             });
         }
 
+        if ($request->has('nomor_order') && $request->nomor_order != '') {
+            $query->where('nomor_order', 'like', '%' . $request->nomor_order . '%');
+        }
+
+        if ($request->has('supplier') && $request->supplier != '') {
+            $supplier = $request->supplier;
+            $query->whereHas('supplier', function ($q) use ($supplier) {
+                $q->where('nama', 'like', '%' . $supplier . '%');
+            });
+        }
+
+        if ($request->has('tanggal_order') && $request->tanggal_order != '') {
+            $query->whereDate('tanggal_order', $request->tanggal_order);
+        }
+
+        if ($request->has('nama_barang') && $request->nama_barang != '') {
+            $namaBarang = $request->nama_barang;
+            $query->whereHas('item', function ($q) use ($namaBarang) {
+                $q->where('nama_barang', 'like', '%' . $namaBarang . '%');
+            });
+        }
+
         // Sorting logic
         $sort = $request->get('sort', 'latest'); // default to latest
 

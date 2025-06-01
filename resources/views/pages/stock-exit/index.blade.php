@@ -8,14 +8,16 @@
 
         <!-- Form Pencarian -->
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <form action="{{ route('stock-exit.index') }}" method="GET" class="d-flex">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control me-2" placeholder="Cari Barang Keluar"
-                        value="{{ request('search') }}">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
-                </div>
+            <form action="{{ route('stock-exit.index') }}" method="GET" class="d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" name="search" class="form-control me-2" placeholder="Cari Nama Barang"
+                    value="{{ request('search') }}" style="min-width: 200px;">
+                <input type="text" name="nomor_nota" class="form-control me-2" placeholder="Cari Nomor Nota"
+                    value="{{ request('nomor_nota') }}" style="min-width: 150px;">
+                <input type="date" name="tanggal_keluar" class="form-control me-2" value="{{ request('tanggal_keluar') }}"
+                    style="min-width: 150px;">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Cari
+                </button>
             </form>
             <div class="d-flex gap-2">
                 <a href="{{ route('stock-exit.create') }}" class="btn btn-primary">
@@ -50,21 +52,61 @@
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Nama Barang</span>
+                                @php $nextSort = next_sort_state('items.nama_barang'); @endphp
+                                <a
+                                    href="{{ route('stock-exit.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'items.nama_barang')
+                                        <i
+                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
                             </div>
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Kode Barang</span>
+                                @php $nextSort = next_sort_state('kode_barang'); @endphp
+                                <a
+                                    href="{{ route('stock-exit.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'kode_barang')
+                                        <i
+                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
                             </div>
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Jumlah Stok Keluar</span>
+                                @php $nextSort = next_sort_state('stok_keluar'); @endphp
+                                <a
+                                    href="{{ route('stock-exit.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'stok_keluar')
+                                        <i
+                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
                             </div>
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Keterangan</span>
+                                @php $nextSort = next_sort_state('keterangan'); @endphp
+                                <a
+                                    href="{{ route('stock-exit.index', array_merge(request()->except(['sort_by', 'sort_order']), $nextSort)) }}">
+                                    @if(request('sort_by') === 'keterangan')
+                                        <i
+                                            class="fas fa-sort-{{ request('sort_order') === 'asc' ? 'up' : (request('sort_order') === 'desc' ? 'down' : '') }}"></i>
+                                    @else
+                                        <i class="fas fa-sort"></i>
+                                    @endif
+                                </a>
                             </div>
                         </th>
                     </tr>
@@ -95,6 +137,7 @@
             </div>
         </div>
     </div>
+
 
 @endsection
 

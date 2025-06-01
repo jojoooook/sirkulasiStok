@@ -20,16 +20,25 @@ class StockExitController extends Controller
             });
         }
 
+        if ($request->has('nomor_nota') && $request->nomor_nota != '') {
+            $query->where('nomor_nota', 'like', '%' . $request->nomor_nota . '%');
+        }
+
+        if ($request->has('tanggal_keluar') && $request->tanggal_keluar != '') {
+            $query->whereDate('tanggal_keluar', $request->tanggal_keluar);
+        }
+
         // Sorting
-        $sortBy = $request->input('sort_by', 'tanggal_keluar'); // default to tanggal_keluar
+        $sortBy = $request->input('sort_by', 'created_at'); // default to latest order
         $sortOrder = $request->input('sort_order', 'desc');
 
         $sortableColumns = [
             'nomor_nota',
             'tanggal_keluar',
+            'created_at',
         ];
 
-        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'tanggal_keluar';
+        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'created_at';
 
         $query->orderBy($sortColumn, $sortOrder);
 

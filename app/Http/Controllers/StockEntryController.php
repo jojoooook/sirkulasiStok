@@ -23,6 +23,18 @@ class StockEntryController extends Controller
             $query->where('items.nama_barang', 'like', '%' . request('search') . '%');
         }
 
+        if (request('nomor_invoice')) {
+            $query->where('nomor_invoice', 'like', '%' . request('nomor_invoice') . '%');
+        }
+
+        if (request('supplier_nama')) {
+            $query->where('suppliers.nama', 'like', '%' . request('supplier_nama') . '%');
+        }
+
+        if (request('tanggal_masuk')) {
+            $query->whereDate('tanggal_masuk', request('tanggal_masuk'));
+        }
+
         // Sorting
         $sortBy = request('sort_by', 'tanggal_masuk'); // default diubah ke tanggal_masuk
         $sortOrder = request('sort_order', 'desc');
