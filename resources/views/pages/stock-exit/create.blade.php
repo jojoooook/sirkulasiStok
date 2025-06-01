@@ -74,7 +74,7 @@
                 $('.item-select').select2({ placeholder: "Pilih Barang", allowClear: true });
             }
 
-            function loadItems(selectElement, stockInfoElement) {
+            function loadItems(selectElement) {
                 $.ajax({
                     url: '{{ route("stock-exit.getItems") }}',
                     type: 'GET',
@@ -130,47 +130,42 @@
                         $(this).val(null).trigger('change');
                         return;
                     }
-                    // Update stock info display
-                    let stockInfoId = $(this).attr('id').replace('item_id', 'stock_info');
-                    let selectedOption = $(this).find('option:selected').text();
-                    $('#' + stockInfoId).text(selectedOption ? selectedOption.split(' - sisa stok ')[1] : '');
                 });
             }
 
             // Load items for the first select on page load
-            loadItems($('#item_id_0'), $('#stock_info_0'));
+            loadItems($('#item_id_0'));
             onItemSelectChange();
 
             let itemCount = 0;
             $('#add-item').on('click', function () {
                 itemCount++;
                 let newItem = `
-                                                        <div class="order-item-container card p-3 mb-3">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
-                                                                    <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
-                                                                        <option value="">Pilih Barang</option>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-4">
-                                                                    <label for="jumlah_keluar" class="form-label">Jumlah Keluar</label>
-                                                                    <input type="number" name="items[${itemCount}][jumlah_keluar]" class="form-control" min="1" required>
-                                                                </div>
-                                                                <div class="col-md-4">
-                                                                    <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
-                                                                    <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
-                                                                </div>
-                                                                <div class="col-md-2 d-flex align-items-end">
-                                                                    <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    `;
+                            <div class="order-item-container card p-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
+                                        <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
+                                            <option value="">Pilih Barang</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="jumlah_keluar" class="form-label">Jumlah Keluar</label>
+                                        <input type="number" name="items[${itemCount}][jumlah_keluar]" class="form-control" min="1" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
+                                        <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                 $('#items-container').append(newItem);
                 let newSelect = $('#item_id_' + itemCount);
-                let newStockInfo = $('#stock_info_' + itemCount);
-                loadItems(newSelect, newStockInfo);
+                loadItems(newSelect);
                 onItemSelectChange();
             });
 
@@ -178,10 +173,43 @@
                 $(this).closest('.order-item-container').remove();
             });
 
-            // Disable submit button on form submit to prevent multiple submissions
-            document.getElementById('stock-exit-form').addEventListener('submit', function (event) {
-                document.getElementById('submit-button').disabled = true;
-                document.getElementById('submit-button').innerText = "Sedang Memproses...";
+            // Add SweetAlert confirmation on form submit
+            $('#stock-exit-form').on('submit', function (e) {
+                e.preventDefault();
+
+                const nomorNota = $('#nomor_nota').val();
+                const tanggalKeluar = $('#tanggal_keluar').val();
+
+                let itemsList = '';
+                $('.order-item-container').each(function () {
+                    const itemName = $(this).find('.item-select option:selected').text();
+                    const quantity = $(this).find('input[name$="[jumlah_keluar]"]').val();
+                    const note = $(this).find('input[name$="[catatan]"]').val();
+                    if (itemName && quantity) {
+                        itemsList += `- ${itemName}: ${quantity} unit${note ? ' (Catatan: ' + note + ')' : ''}\n`;
+                    }
+                });
+
+                Swal.fire({
+                    title: 'Konfirmasi Barang Keluar',
+                    html: `<div class="text-left">
+                                            <p>Nomor Nota: ${nomorNota}</p>
+                                            <p>Tanggal Keluar: ${tanggalKeluar}</p>
+                                            <p>Detail Barang Keluar:</p>
+                                            <pre>${itemsList}</pre>
+                                            </div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Simpan Barang Keluar',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Disable submit button to prevent multiple submissions
+                        $('#submit-button').prop('disabled', true).text('Sedang Memproses...');
+                        this.submit();
+                    }
+                });
             });
         });
     </script>

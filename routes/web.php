@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/order/{nomor_order}/batch-complete', [OrderController::class, 'showBatchComplete'])->name('order.showBatchComplete');
         Route::patch('/order/{nomor_order}/batch-complete', [OrderController::class, 'batchComplete'])->name('order.batchComplete');
         Route::get('/get-items/{supplierId}', [OrderController::class, 'getItemsBySupplier'])->name('get-items');
+        Route::get('/order/{nomor_order}/show', [OrderController::class, 'show'])->name('order.show');
 
         // SettingController
         Route::get('/setting', [SettingController::class, 'index'])->name('setting.index');

@@ -28,14 +28,6 @@
                         style="min-width: 150px;">
                     <input type="text" name="nama_barang" class="form-control" placeholder="Cari Nama Barang"
                         value="{{ request('nama_barang') }}" style="min-width: 200px;">
-                    <select name="sort" class="form-select" style="min-width: 180px;" onchange="this.form.submit()">
-                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Tanggal Terbaru</option>
-                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Tanggal Terlama</option>
-                        <option value="nomor_order_asc" {{ request('sort') == 'nomor_order_asc' ? 'selected' : '' }}>Nomor
-                            Order Asc</option>
-                        <option value="nomor_order_desc" {{ request('sort') == 'nomor_order_desc' ? 'selected' : '' }}>Nomor
-                            Order Desc</option>
-                    </select>
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search"></i> Cari
                     </button>
@@ -54,14 +46,17 @@
                 @endphp
                 <div class="accordion-item mb-3 shadow-sm">
                     <h2 class="accordion-header" id="heading{{ $nomorOrder }}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse{{ $nomorOrder }}" aria-expanded="false"
+                        <button class="accordion-button collapsed d-flex align-items-center pe-0" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse{{ $nomorOrder }}" aria-expanded="false"
                             aria-controls="collapse{{ $nomorOrder }}">
-                            <strong>Nomor Order:</strong> {{ $nomorOrder }} &nbsp;&nbsp;
-                            <strong>Supplier:</strong> {{ $firstOrder->supplier->nama }} &nbsp;&nbsp;
-                            <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($firstOrder->tanggal_order)->format('d-m-Y') }}
-                            &nbsp;&nbsp;
-                            <strong>Status:</strong> {{ ucfirst($firstOrder->status_order) }}
+                            <div class="me-auto">
+                                <strong>Nomor Order:</strong> {{ $nomorOrder }} &nbsp;&nbsp;
+                                <strong>Supplier:</strong> {{ $firstOrder->supplier->nama }} &nbsp;&nbsp;
+                                <strong>Tanggal:</strong>
+                                {{ \Carbon\Carbon::parse($firstOrder->tanggal_order)->format('d-m-Y') }}
+                                &nbsp;&nbsp;
+                                <strong>Status:</strong> {{ ucfirst($firstOrder->status_order) }}
+                            </div>
                         </button>
                     </h2>
                     <div id="collapse{{ $nomorOrder }}" class="accordion-collapse collapse"
@@ -87,8 +82,11 @@
                                     @endforeach
                                 </tbody>
                             </table>
-                            @if($firstOrder->status_order === 'pending')
-                                <div class="p-3 d-flex justify-content-end gap-2">
+                            <div class="p-3 d-flex justify-content-end flex-wrap gap-2">
+                                <a href="{{ route('order.show', $nomorOrder) }}" class="btn btn-secondary">
+                                    Detail Order <i class="fas fa-external-link-alt ms-1"></i>
+                                </a>
+                                @if($firstOrder->status_order === 'pending')
                                     <a href="{{ route('order.showBatchComplete', ['nomor_order' => $nomorOrder]) }}"
                                         class="btn btn-success">
                                         Selesaikan Pesanan
@@ -101,8 +99,8 @@
                                             Batalkan Pesanan
                                         </button>
                                     </form>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -113,6 +111,7 @@
             {!! $orders->links('pagination::bootstrap-4') !!}
         </div>
 
+        {{-- Modal Konfirmasi Batal --}}
         <div class="modal fade" id="modalKonfirmasiBatal" tabindex="-1" aria-labelledby="modalKonfirmasiBatalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -141,6 +140,7 @@
         </div>
 
 @endsection
+
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -153,7 +153,7 @@
                     const filterParams = ['nomor_order', 'supplier', 'tanggal_order', 'nama_barang'];
 
                     for (const param of filterParams) {
-                        if (urlParams.has(param) && urlParams.get(param) !== null && urlParams.get(param).trim() !== '') {
+                        if (urlParams.has(param) && urlParams.get(param).trim() !== '') {
                             hasActiveFilter = true;
                             break;
                         }

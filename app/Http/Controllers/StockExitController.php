@@ -101,7 +101,7 @@ class StockExitController extends Controller
             'items.*.item_id' => 'required|exists:items,kode_barang',
             'items.*.jumlah_keluar' => 'required|integer|min:1',
             'items.*.catatan' => 'nullable|string|max:255',
-            'tanggal_keluar' => 'required|date',
+            'tanggal_keluar' => 'required|date|before_or_equal:today',
         ]);
 
         $tanggalKeluar = $validated['tanggal_keluar'];

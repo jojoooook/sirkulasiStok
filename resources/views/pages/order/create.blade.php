@@ -3,6 +3,16 @@
 @section('content')
     <div class="container">
         <h1 class="text-center mb-4">Tambah Order Barang</h1>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('order.store') }}" method="POST">
             @csrf
             <div class="mb-3">
@@ -60,6 +70,7 @@
         </form>
     </div>
 @endsection
+
 @push('scripts')
     <script>
         $(document).ready(function () {
@@ -161,29 +172,29 @@
             $('#add-item').on('click', function () {
                 itemCount++;
                 let newItem = `
-                                                            <div class="order-item-container card p-3 mb-3">
-                                                            <div class="row">
-                                                            <div class="col-md-6">
-                                                            <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
-                                                            <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
-                                                            <option value="">Pilih Barang</option>
-                                                            </select>
-                                                            <small class="text-muted" id="stock_info_${itemCount}"></small>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                            <label for="jumlah_order" class="form-label">Jumlah Order</label>
-                                                            <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                            <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
-                                                            <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
-                                                            </div>
-                                                            <div class="col-md-2 d-flex align-items-end">
-                                                            <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
-                                                            </div>
-                                                            </div>
-                                                            </div>
-                                                            `;
+                                                                                <div class="order-item-container card p-3 mb-3">
+                                                                                <div class="row">
+                                                                                <div class="col-md-6">
+                                                                                <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
+                                                                                <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
+                                                                                <option value="">Pilih Barang</option>
+                                                                                </select>
+                                                                                <small class="text-muted" id="stock_info_${itemCount}"></small>
+                                                                                </div>
+                                                                                <div class="col-md-4">
+                                                                                <label for="jumlah_order" class="form-label">Jumlah Order</label>
+                                                                                <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
+                                                                                </div>
+                                                                                <div class="col-md-4">
+                                                                                <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
+                                                                                <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
+                                                                                </div>
+                                                                                <div class="col-md-2 d-flex align-items-end">
+                                                                                <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
+                                                                                </div>
+                                                                                </div>
+                                                                                </div>
+                                                                                `;
                 $('#order-items').append(newItem);
                 initItemSelect();
                 onItemSelectChange();
@@ -286,12 +297,12 @@
                 Swal.fire({
                     title: 'Konfirmasi Order',
                     html: `<div class="text-left">
-                                    <p>Nomor Order: ${orderNumber}</p>
-                                    <p>Tanggal: ${orderDate}</p>
-                                    <p>Supplier: ${supplierName}</p>
-                                    <p>Detail Pesanan:</p>
-                                    <pre>${itemsList}</pre>
-                                    </div>`,
+                                                        <p>Nomor Order: ${orderNumber}</p>
+                                                        <p>Tanggal: ${orderDate}</p>
+                                                        <p>Supplier: ${supplierName}</p>
+                                                        <p>Detail Pesanan:</p>
+                                                        <pre>${itemsList}</pre>
+                                                        </div>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Buat Order',

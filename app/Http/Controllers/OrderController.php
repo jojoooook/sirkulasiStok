@@ -57,21 +57,45 @@ class OrderController extends Controller
         $sort = $request->get('sort', 'latest'); // default to latest
 
         if ($sort === 'latest') {
-            $query->orderBy('tanggal_order', 'desc');
+            $query->orderBy('created_at', 'desc');
         } elseif ($sort === 'oldest') {
-            $query->orderBy('tanggal_order', 'asc');
+            $query->orderBy('created_at', 'asc');
         } elseif ($sort === 'nomor_order_asc') {
             $query->orderBy('nomor_order', 'asc');
         } elseif ($sort === 'nomor_order_desc') {
             $query->orderBy('nomor_order', 'desc');
         } else {
             // fallback default
-            $query->orderBy('tanggal_order', 'desc');
+            $query->orderBy('created_at', 'desc');
         }
 
         $orders = $query->paginate(10)->appends(request()->query());
 
         return view('pages.order.index', compact('orders'));
+    }
+    
+    public function show($nomor_order)
+    {
+        $orders = Order::with(['supplier', 'item'])
+            ->where('nomor_order', $nomor_order)
+            ->get()
+            ->map(function ($order) {
+                // Get the stock entry for this order
+                $stockEntry = StockEntry::where('nomor_invoice', $order->nomor_invoice)
+                    ->where('kode_barang', $order->kode_barang)
+                    ->first();
+                
+                // Add the stock entry quantity to the order object
+                $order->jumlah_barang_masuk = $stockEntry ? $stockEntry->stok_masuk : null;
+                
+                return $order;
+            });
+
+        if ($orders->isEmpty()) {
+            return redirect()->route('order.index')->with('error', 'Order tidak ditemukan.');
+        }
+
+        return view('pages.order.show', compact('orders', 'nomor_order'));
     }
 
     public function create()
@@ -89,15 +113,19 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,kode_supplier',
-            'tanggal_order' => 'required|date',
-            'items' => 'required|array',
-            'items.*.item_id' => 'required|exists:items,kode_barang',
-            'items.*.jumlah_order' => 'required|integer|min:1',
-            'items.*.catatan' => 'nullable|string|max:255',
-        ]);
+        try {
+            // Validasi input
+            $validated = $request->validate([
+                'supplier_id' => 'required|exists:suppliers,kode_supplier',
+                'tanggal_order' => 'required|date|before_or_equal:today',
+                'items' => 'required|array',
+                'items.*.item_id' => 'required|exists:items,kode_barang',
+                'items.*.jumlah_order' => 'required|integer|min:1',
+                'items.*.catatan' => 'nullable|string|max:255',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        }
 
         // Generate nomor_order yang unik
         $lastNomorOrder = Order::orderBy('nomor_order', 'desc')->first();
@@ -177,15 +205,22 @@ class OrderController extends Controller
 
     public function batchComplete(Request $request, $nomor_order)
     {
-        $validated = $request->validate([
-            'nomor_invoice' => 'required|string|max:255',
-            'tanggal_invoice' => 'required|date',
-            'orders' => 'required|array',
-            'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
-            'orders.*.jumlah_masuk' => 'required|integer|min:0',
-            'orders.*.catatan' => 'nullable|string|max:255',
-            'orders.*.kode_barang' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'nomor_invoice' => 'required|string|max:255',
+                'tanggal_invoice' => 'required|date|before_or_equal:today',
+                'orders' => 'required|array',
+                'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
+                'orders.*.jumlah_masuk' => 'required|integer|min:0',
+                'orders.*.catatan' => 'nullable|string|max:255',
+                'orders.*.kode_barang' => 'required|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first(),
+            ]);
+        }
 
         // Check if nomor_invoice already exists in stock_entries
         $existingInvoice = StockEntry::where('nomor_invoice', $validated['nomor_invoice'])->exists();
