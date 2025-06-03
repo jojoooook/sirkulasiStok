@@ -20,10 +20,6 @@
             </div>
 
             <div class="form-group">
-                <!-- Removed email input -->
-            </div>
-
-            <div class="form-group">
                 <label for="role">Role</label>
                 <select name="role" class="form-control" required>
                     <option value="karyawan" {{ $user->role == 'karyawan' ? 'selected' : '' }}>Karyawan</option>

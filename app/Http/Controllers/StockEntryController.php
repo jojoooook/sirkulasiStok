@@ -36,7 +36,7 @@ class StockEntryController extends Controller
         }
 
         // Sorting
-        $sortBy = request('sort_by', 'tanggal_masuk'); // default diubah ke tanggal_masuk
+        $sortBy = request('sort_by', 'created_at'); // default diubah ke created_at
         $sortOrder = request('sort_order', 'desc');
 
         // Validasi kolom sort agar aman
@@ -46,9 +46,10 @@ class StockEntryController extends Controller
             'stok_masuk',
             'tanggal_masuk',
             'keterangan',
+            'created_at',
         ];
 
-        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'items.nama_barang';
+        $sortColumn = in_array($sortBy, $sortableColumns) ? $sortBy : 'created_at';
 
         $query->orderBy($sortColumn, $sortOrder);
 

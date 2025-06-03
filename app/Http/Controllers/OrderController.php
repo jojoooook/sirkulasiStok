@@ -9,6 +9,7 @@ use App\Models\StockEntry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -53,8 +54,13 @@ class OrderController extends Controller
             });
         }
 
+        if ($request->has('status_order') && $request->status_order != '') {
+            $query->where('status_order', $request->status_order);
+        }
+
         // Sorting logic
         $sort = $request->get('sort', 'latest'); // default to latest
+
 
         if ($sort === 'latest') {
             $query->orderBy('created_at', 'desc');
@@ -197,7 +203,7 @@ class OrderController extends Controller
         $orders = Order::with(['supplier', 'item'])
             ->where('nomor_order', $nomor_order)
             ->where('status_order', 'pending')
-            ->orderBy('tanggal_order', 'asc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('pages.order.batch_complete', compact('orders', 'nomor_order'));
@@ -205,88 +211,108 @@ class OrderController extends Controller
 
     public function batchComplete(Request $request, $nomor_order)
     {
-        try {
-            $validated = $request->validate([
-                'nomor_invoice' => 'required|string|max:255',
-                'tanggal_invoice' => 'required|date|before_or_equal:today',
-                'orders' => 'required|array',
-                'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
-                'orders.*.jumlah_masuk' => 'required|integer|min:0',
-                'orders.*.catatan' => 'nullable|string|max:255',
-                'orders.*.kode_barang' => 'required|string',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->validator->errors()->first(),
-            ]);
+        $errors = [];
+        $invoiceErrors = [];
+        $dateErrors = [];
+        $otherErrors = [];
+
+        $validator = Validator::make($request->all(), [
+            'nomor_invoice' => 'required|string|max:255',
+            'tanggal_invoice' => 'required|date|before_or_equal:today',
+            'orders' => 'required|array',
+            'orders.*.nomor_order' => 'required|exists:orders,nomor_order',
+            'orders.*.jumlah_masuk' => 'required|integer|min:0',
+            'orders.*.catatan' => 'nullable|string|max:255',
+            'orders.*.kode_barang' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = array_merge($errors, $validator->errors()->all());
         }
 
-        // Check if nomor_invoice already exists in stock_entries
-        $existingInvoice = StockEntry::where('nomor_invoice', $validated['nomor_invoice'])->exists();
-        if ($existingInvoice) {
+        if ($request->filled('nomor_invoice')) {
+            $existingInvoice = StockEntry::where('nomor_invoice', $request->input('nomor_invoice'))->exists();
+            if ($existingInvoice) {
+                $invoiceErrors[] = 'Nomor invoice sudah ada.';
+            }
+        }
+
+        // Sort errors from validator: separate date errors from others
+        foreach ($errors as $error) {
+            if (stripos($error, 'tanggal') !== false) {
+                $dateErrors[] = 'Tanggal invoice tidak valid atau melewati tanggal hari ini.';
+            } else {
+                $otherErrors[] = $error;
+            }
+        }
+
+        $errors = array_merge($invoiceErrors, $dateErrors, $otherErrors);
+
+        if (count($errors) > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Nomor invoice sudah ada.',
+                'errors' => $errors,
             ]);
         }
 
         DB::beginTransaction();
 
         try {
-            foreach ($validated['orders'] as $orderData) {
+            foreach ($request->input('orders') as $orderData) {
                 $order = Order::where('nomor_order', $orderData['nomor_order'])
                     ->where('kode_barang', $orderData['kode_barang'])
                     ->first();
+
                 if (!$order || $order->status_order !== 'pending') {
-                    throw new \Exception("Order nomor {$orderData['nomor_order']} tidak dapat diselesaikan.");
+                    $otherErrors[] = "Order nomor {$orderData['nomor_order']} dengan kode barang {$orderData['kode_barang']} tidak dapat diselesaikan atau sudah selesai.";
+                    continue;
                 }
 
                 $jumlahMasuk = $orderData['jumlah_masuk'];
-                // Allow jumlahMasuk to be more or less than jumlah_order, no exception thrown
+
+                // if ($jumlahMasuk > $order->jumlah_order) {
+                //     $otherErrors[] = "Jumlah masuk untuk order {$orderData['nomor_order']} ({$order->item->nama_barang}) tidak boleh melebihi jumlah order ({$order->jumlah_order}).";
+                // }
+
+                if (count($otherErrors) > 0) {
+                    // Continue to collect all errors before rollback
+                }
 
                 $order->status_order = 'selesai';
-                $order->tanggal_selesai = $validated['tanggal_invoice'];
+                $order->tanggal_selesai = $request->input('tanggal_invoice');
                 $order->catatan = $orderData['catatan'] ?? null;
-                $order->nomor_invoice = $validated['nomor_invoice'];
+                $order->nomor_invoice = $request->input('nomor_invoice');
                 $order->save();
 
                 $item = $order->item;
                 $item->stok += $jumlahMasuk;
                 $item->save();
 
-                $stockEntry = StockEntry::where('supplier_id', $order->supplier_id)
-                    ->where('nomor_invoice', $validated['nomor_invoice'])
-                    ->where('kode_barang', $order->kode_barang)
-                    ->first();
+                $stockEntry = StockEntry::where('nomor_invoice', $request->input('nomor_invoice'))
+                                    ->where('kode_barang', $order->kode_barang)
+                                    ->first();
 
                 if ($stockEntry) {
                     $stockEntry->stok_masuk += $jumlahMasuk;
-                    $stockEntry->tanggal_masuk = $validated['tanggal_invoice'];
-                    $stockEntry->keterangan = $orderData['catatan'] ?? null;
-                    $stockEntry->save();
-                } else {
-                $stockEntry = StockEntry::where('supplier_id', $order->supplier_id)
-                    ->where('nomor_invoice', $validated['nomor_invoice'])
-                    ->where('kode_barang', $order->kode_barang)
-                    ->first();
-
-                if ($stockEntry) {
-                    $stockEntry->stok_masuk += $jumlahMasuk;
-                    $stockEntry->tanggal_masuk = $validated['tanggal_invoice'];
-                    $stockEntry->keterangan = $orderData['catatan'] ?? null;
                     $stockEntry->save();
                 } else {
                     StockEntry::create([
                         'supplier_id' => $order->supplier_id,
                         'kode_barang' => $order->kode_barang,
-                        'nomor_invoice' => $validated['nomor_invoice'],
+                        'nomor_invoice' => $request->input('nomor_invoice'),
                         'stok_masuk' => $jumlahMasuk,
-                        'tanggal_masuk' => $validated['tanggal_invoice'],
+                        'tanggal_masuk' => $request->input('tanggal_invoice'),
                         'keterangan' => $orderData['catatan'] ?? null,
                     ]);
                 }
-                }
+            }
+
+            if (count($otherErrors) > 0) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'errors' => array_merge($invoiceErrors, $dateErrors, $otherErrors),
+                ]);
             }
 
             DB::commit();
@@ -300,8 +326,10 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyelesaikan order: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
+                'errors' => array_merge($invoiceErrors, $dateErrors, $otherErrors),
             ]);
         }
     }
+
 }
