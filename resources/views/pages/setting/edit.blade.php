@@ -11,7 +11,7 @@
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" name="username" class="form-control" value="{{ old('username', $user->username) }}"
-                    required>
+                    required readonly>
             </div>
 
             <div class="form-group">
@@ -20,8 +20,7 @@
             </div>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
+                <!-- Removed email input -->
             </div>
 
             <div class="form-group">

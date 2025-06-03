@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('username')->unique();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('role')->default('karyawan'); 
             $table->boolean('active')->default(true);
@@ -25,7 +23,7 @@ return new class extends Migration
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            // Removed email column as primary key as per request
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

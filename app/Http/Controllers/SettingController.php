@@ -26,16 +26,23 @@ class SettingController extends Controller
         $request->validate([
             'username' => 'required|string|max:255|unique:users',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:admin,karyawan',
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'name.required' => 'Nama wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role tidak valid.',
         ]);
 
         try {
             User::create([
                 'username' => $request->username,
                 'name' => $request->name,
-                'email' => $request->email,
                 'password' => bcrypt($request->password),
                 'role' => $request->role,
             ]);
@@ -43,7 +50,7 @@ class SettingController extends Controller
             return redirect()->route('setting.index')->with('success', 'Pengguna berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Terjadi kesalahan saat menyimpan data pengguna: ' . $e->getMessage());
-            return redirect()->route('setting.create')->with('error', 'Gagal menambahkan pengguna: ' . $e->getMessage());
+            return redirect()->route('setting.create')->with('error', 'Gagal menambahkan pengguna.');
         }
     }
 
@@ -61,17 +68,23 @@ class SettingController extends Controller
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $id,
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required|in:admin,karyawan',
             'current_password' => 'nullable|string', // Validasi password lama (optional)
             'password' => 'nullable|string|min:6|confirmed', // Validasi password baru (optional)
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'name.required' => 'Nama wajib diisi.',
+            'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role tidak valid.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak sama.',
         ]);
 
         // Update data pengguna
         $user->update([
             'username' => $request->username,
             'name' => $request->name,
-            'email' => $request->email,
             'role' => $request->role,
         ]);
 

@@ -22,8 +22,6 @@
 
                         <th>Nama</th>
 
-                        <th>Email</th>
-
                         <th>Role</th>
 
                         <th>Status</th>
@@ -43,8 +41,6 @@
                             <td>{{ $user->username }}</td>
 
                             <td>{{ $user->name }}</td>
-
-                            <td>{{ $user->email }}</td>
 
                             <td>{{ ucfirst($user->role) }}</td>
 

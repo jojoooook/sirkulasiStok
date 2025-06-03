@@ -27,12 +27,7 @@
             </div>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <input id="email" type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                    required value="{{ old('email') }}">
-                @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <!-- Removed email input and validation display -->
             </div>
 
             <div class="form-group">
