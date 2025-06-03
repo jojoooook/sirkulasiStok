@@ -106,6 +106,11 @@ class ItemController extends Controller
     {
         $item = Item::findOrFail($kode_barang);
 
+        // Prevent deletion if item has a supplier
+        if ($item->supplier_id) {
+            return redirect()->route('item.index')->with('error', 'Barang tidak dapat dihapus karena memiliki supplier terkait.');
+        }
+
         if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
             Storage::disk('public')->delete($item->gambar);
         }

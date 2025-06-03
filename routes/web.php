@@ -25,7 +25,13 @@ Route::middleware('auth')->group(function () {
     // Routes untuk Admin - Admin bisa mengakses semua route
     Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
         // Admin bisa mengakses semua route
-        Route::resource('item', ItemController::class);
+        Route::get('/item', [ItemController::class, 'index'])->name('item.index'); // Daftar Barang
+        Route::get('/item/create', [ItemController::class, 'create'])->name('item.create'); // Create form
+        Route::post('/item', [ItemController::class, 'store'])->name('item.store'); // Store new item
+        Route::get('/item/{id}/show', [ItemController::class, 'show'])->name('item.show'); // Detail Barang
+        Route::get('/item/{id}/edit', [ItemController::class, 'edit'])->name('item.edit'); // Edit form
+        Route::put('/item/{id}', [ItemController::class, 'update'])->name('item.update'); // Update item
+        Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy'); // Delete item
 
         // StockEntryController (Barang Masuk)
         Route::get('/stock-entry', [StockEntryController::class, 'index'])->name('stock-entry.index');
@@ -68,10 +74,15 @@ Route::middleware('auth')->group(function () {
 
     // Karyawan hanya bisa mengakses Dashboard, Daftar Barang, dan Barang Keluar
     Route::middleware(RoleMiddleware::class . ':karyawan')->group(function () {
+        // Replace resource route with individual routes for item
         Route::get('/item', [ItemController::class, 'index'])->name('item.index'); // Daftar Barang
+        Route::get('/item/create', [ItemController::class, 'create'])->name('item.create'); // Create form
+        Route::post('/item', [ItemController::class, 'store'])->name('item.store'); // Store new item
+        Route::get('/item/{id}/show', [ItemController::class, 'show'])->name('item.show'); // Detail Barang
         Route::get('/stock-exit', [StockExitController::class, 'index'])->name('stock-exit.index'); // Barang Keluar - Index
         Route::get('/stock-exit/create', [StockExitController::class, 'create'])->name('stock-exit.create'); // Barang Keluar - Input
         Route::post('/stock-exit', [StockExitController::class, 'store'])->name('stock-exit.store'); // Barang Keluar - Store
+        Route::get('/stock-exit/get-items', [StockExitController::class, 'getItems'])->name('stock-exit.getItems');
     });
 
 });
