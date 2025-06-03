@@ -41,7 +41,19 @@ class SupplierController extends Controller
             'kode_supplier' => 'required|string|max:255|unique:suppliers,kode_supplier',
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
-            'telepon' => 'required|string|max:20',
+            'telepon' => 'required|digits_between:10,14',
+        ], [
+            'kode_supplier.required' => 'Kode supplier wajib diisi.',
+            'kode_supplier.string' => 'Kode supplier harus berupa teks.',
+            'kode_supplier.max' => 'Kode supplier maksimal 255 karakter.',
+            'kode_supplier.unique' => 'Kode supplier sudah digunakan.',
+            'nama.required' => 'Nama supplier wajib diisi.',
+            'nama.string' => 'Nama supplier harus berupa teks.',
+            'nama.max' => 'Nama supplier maksimal 255 karakter.',
+            'alamat.required' => 'Alamat supplier wajib diisi.',
+            'alamat.string' => 'Alamat supplier harus berupa teks.',
+            'telepon.required' => 'Nomor telepon wajib diisi.',
+            'telepon.digits_between' => 'Nomor telepon harus antara 10 sampai 14 digit.',
         ]);
 
         // Simpan data
@@ -65,14 +77,25 @@ class SupplierController extends Controller
     public function update(Request $request, $kode_supplier)
     {
         $request->validate([
-            'kode_supplier' => 'required|string|max:255|unique:suppliers,kode_supplier,' . $kode_supplier . ',kode_supplier',
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
-            'telepon' => 'required|string|max:20',
+            'telepon' => 'required|digits_between:10,14',
+        ], [
+            'nama.required' => 'Nama supplier wajib diisi.',
+            'nama.string' => 'Nama supplier harus berupa teks.',
+            'nama.max' => 'Nama supplier maksimal 255 karakter.',
+            'alamat.required' => 'Alamat supplier wajib diisi.',
+            'alamat.string' => 'Alamat supplier harus berupa teks.',
+            'telepon.required' => 'Nomor telepon wajib diisi.',
+            'telepon.digits_between' => 'Nomor telepon harus antara 10 sampai 14 digit.',
         ]);
 
         $supplier = Supplier::findOrFail($kode_supplier);
-        $supplier->update($request->all());
+        $supplier->update([
+            'nama' => $request->nama,
+            'alamat' => $request->alamat,
+            'telepon' => $request->telepon,
+        ]);
 
         return redirect()->route('supplier.index')->with('success', 'Supplier berhasil diperbarui.');
     }
