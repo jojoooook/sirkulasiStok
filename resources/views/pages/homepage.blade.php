@@ -31,6 +31,44 @@
                 </div>
             </div>
 
+            <!-- Total Supplier -->
+            <div class="col-md-3">
+                <div class="card shadow rounded border-0" style="background-color: #6c757d; color: white;">
+                    <div class="card-body d-flex flex-column justify-content-between" style="min-height: 140px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Total Supplier</h5>
+                            <i class="fas fa-truck fa-2x"></i>
+                        </div>
+                        <h2 class="card-text fw-bold">{{ $totalSupplier }}</h2>
+                        <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah total supplier yang terdaftar</p>
+                        <a href="{{ route('supplier.index') }}"
+                            class="text-white text-decoration-none align-self-start fw-semibold"
+                            style="transition: color 0.3s;">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Orders -->
+            <div class="col-md-3">
+                <div class="card shadow rounded border-0" style="background-color: #d39e00; color: white;">
+                    <div class="card-body d-flex flex-column justify-content-between" style="min-height: 140px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Pending Orders</h5>
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <h2 class="card-text fw-bold">{{ $pendingOrders }}</h2>
+                        <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah order yang sedang pending</p>
+                        <a href="{{ route('order.index', ['status_order' => 'pending']) }}"
+                            class="text-white text-decoration-none align-self-start fw-semibold"
+                            style="transition: color 0.3s;">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Barang Keluar Hari Ini -->
             <div class="col-md-3">
                 <div class="card shadow rounded border-0" style="background-color: #b33a3a; color: white;">
@@ -41,7 +79,7 @@
                         </div>
                         <h2 class="card-text fw-bold">{{ $barangKeluarHariIni }}</h2>
                         <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah barang yang keluar hari ini</p>
-                        <a href="{{ route('stock-exit.index') }}"
+                        <a href="{{ route('stock-exit.index', ['bulan_keluar' => \Carbon\Carbon::now()->format('Y-m')]) }}"
                             class="text-white text-decoration-none align-self-start fw-semibold"
                             style="transition: color 0.3s;">
                             More info <i class="fas fa-arrow-circle-right"></i>
@@ -60,26 +98,7 @@
                         </div>
                         <h2 class="card-text fw-bold">{{ $barangMasukHariIni }}</h2>
                         <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah barang yang masuk hari ini</p>
-                        <a href="{{ route('stock-entry.index') }}"
-                            class="text-white text-decoration-none align-self-start fw-semibold"
-                            style="transition: color 0.3s;">
-                            More info <i class="fas fa-arrow-circle-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Barang Masuk Bulan Ini -->
-            <div class="col-md-3">
-                <div class="card shadow rounded border-0" style="background-color: #3a7ca5; color: white;">
-                    <div class="card-body d-flex flex-column justify-content-between" style="min-height: 140px;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="card-title mb-0">Barang Masuk Bulan Ini</h5>
-                            <i class="fas fa-calendar-plus fa-2x"></i>
-                        </div>
-                        <h2 class="card-text fw-bold">{{ $barangMasukBulanIni }}</h2>
-                        <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah barang yang masuk bulan ini</p>
-                        <a href="{{ route('stock-entry.index') }}"
+                        <a href="{{ route('stock-entry.index', ['bulan_masuk' => \Carbon\Carbon::now()->format('Y-m')]) }}"
                             class="text-white text-decoration-none align-self-start fw-semibold"
                             style="transition: color 0.3s;">
                             More info <i class="fas fa-arrow-circle-right"></i>
@@ -99,6 +118,25 @@
                         <h2 class="card-text fw-bold">{{ $barangKeluarBulanIni }}</h2>
                         <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah barang yang keluar bulan ini</p>
                         <a href="{{ route('stock-exit.index') }}"
+                            class="text-white text-decoration-none align-self-start fw-semibold"
+                            style="transition: color 0.3s;">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barang Masuk Bulan Ini -->
+            <div class="col-md-3">
+                <div class="card shadow rounded border-0" style="background-color: #3a7ca5; color: white;">
+                    <div class="card-body d-flex flex-column justify-content-between" style="min-height: 140px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Barang Masuk Bulan Ini</h5>
+                            <i class="fas fa-calendar-plus fa-2x"></i>
+                        </div>
+                        <h2 class="card-text fw-bold">{{ $barangMasukBulanIni }}</h2>
+                        <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah barang yang masuk bulan ini</p>
+                        <a href="{{ route('stock-entry.index') }}"
                             class="text-white text-decoration-none align-self-start fw-semibold"
                             style="transition: color 0.3s;">
                             More info <i class="fas fa-arrow-circle-right"></i>

@@ -88,7 +88,7 @@
 
 @section('content')
     <div class="login-card">
-        <div class="login-logo"></div>
+        <div class="login-logo" style="background-image: url('/images/logo.png');"></div>
         <h3 class="text-center mb-4">Login to CV Sri Lestari</h3>
 
         <form method="POST" action="{{ route('login.post') }}">
