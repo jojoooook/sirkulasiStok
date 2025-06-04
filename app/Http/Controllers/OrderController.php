@@ -21,63 +21,67 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = Order::with(['supplier', 'item']);
+        try {
+            $query = Order::with(['supplier', 'item']);
 
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->whereHas('supplier', function ($q) use ($search) {
-                $q->where('nama', 'like', '%' . $search . '%');
-            })->orWhereHas('item', function ($q) use ($search) {
-                $q->where('nama_barang', 'like', '%' . $search . '%');
-            });
+            if ($request->has('search') && $request->search != '') {
+                $search = $request->search;
+                $query->whereHas('supplier', function ($q) use ($search) {
+                    $q->where('nama', 'like', '%' . $search . '%');
+                })->orWhereHas('item', function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', '%' . $search . '%');
+                });
+            }
+
+            if ($request->has('nomor_order') && $request->nomor_order != '') {
+                $query->where('nomor_order', 'like', '%' . $request->nomor_order . '%');
+            }
+
+            if ($request->has('supplier') && $request->supplier != '') {
+                $supplier = $request->supplier;
+                $query->whereHas('supplier', function ($q) use ($supplier) {
+                    $q->where('nama', 'like', '%' . $supplier . '%');
+                });
+            }
+
+            if ($request->has('tanggal_order') && $request->tanggal_order != '') {
+                $query->whereDate('tanggal_order', $request->tanggal_order);
+            }
+
+            if ($request->has('nama_barang') && $request->nama_barang != '') {
+                $namaBarang = $request->nama_barang;
+                $query->whereHas('item', function ($q) use ($namaBarang) {
+                    $q->where('nama_barang', 'like', '%' . $namaBarang . '%');
+                });
+            }
+
+            if ($request->has('status_order') && $request->status_order != '') {
+                $query->where('status_order', $request->status_order);
+            }
+
+            // Sorting logic
+            $sort = $request->get('sort', 'latest'); // default to latest
+
+
+            if ($sort === 'latest') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($sort === 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            } elseif ($sort === 'nomor_order_asc') {
+                $query->orderBy('nomor_order', 'asc');
+            } elseif ($sort === 'nomor_order_desc') {
+                $query->orderBy('nomor_order', 'desc');
+            } else {
+                // fallback default
+                $query->orderBy('created_at', 'desc');
+            }
+
+            $orders = $query->paginate(10)->appends(request()->query());
+
+            return view('pages.order.index', compact('orders'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data order: ' . $e->getMessage());
         }
-
-        if ($request->has('nomor_order') && $request->nomor_order != '') {
-            $query->where('nomor_order', 'like', '%' . $request->nomor_order . '%');
-        }
-
-        if ($request->has('supplier') && $request->supplier != '') {
-            $supplier = $request->supplier;
-            $query->whereHas('supplier', function ($q) use ($supplier) {
-                $q->where('nama', 'like', '%' . $supplier . '%');
-            });
-        }
-
-        if ($request->has('tanggal_order') && $request->tanggal_order != '') {
-            $query->whereDate('tanggal_order', $request->tanggal_order);
-        }
-
-        if ($request->has('nama_barang') && $request->nama_barang != '') {
-            $namaBarang = $request->nama_barang;
-            $query->whereHas('item', function ($q) use ($namaBarang) {
-                $q->where('nama_barang', 'like', '%' . $namaBarang . '%');
-            });
-        }
-
-        if ($request->has('status_order') && $request->status_order != '') {
-            $query->where('status_order', $request->status_order);
-        }
-
-        // Sorting logic
-        $sort = $request->get('sort', 'latest'); // default to latest
-
-
-        if ($sort === 'latest') {
-            $query->orderBy('created_at', 'desc');
-        } elseif ($sort === 'oldest') {
-            $query->orderBy('created_at', 'asc');
-        } elseif ($sort === 'nomor_order_asc') {
-            $query->orderBy('nomor_order', 'asc');
-        } elseif ($sort === 'nomor_order_desc') {
-            $query->orderBy('nomor_order', 'desc');
-        } else {
-            // fallback default
-            $query->orderBy('created_at', 'desc');
-        }
-
-        $orders = $query->paginate(10)->appends(request()->query());
-
-        return view('pages.order.index', compact('orders'));
     }
     
     public function show($nomor_order)
@@ -120,7 +124,22 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validasi input
+            $messages = [
+                'supplier_id.required' => 'Supplier harus diisi.',
+                'supplier_id.exists' => 'Supplier tidak ditemukan.',
+                'tanggal_order.required' => 'Tanggal order harus diisi.',
+                'tanggal_order.date' => 'Tanggal order harus berupa tanggal yang valid.',
+                'tanggal_order.before_or_equal' => 'Tanggal order tidak boleh melewati tanggal hari ini.',
+                'items.required' => 'Daftar barang harus diisi.',
+                'items.array' => 'Daftar barang harus berupa array.',
+                'items.*.item_id.required' => 'Kode barang harus diisi.',
+                'items.*.item_id.exists' => 'Kode barang tidak ditemukan.',
+                'items.*.jumlah_order.required' => 'Jumlah order harus diisi.',
+                'items.*.jumlah_order.integer' => 'Jumlah order harus berupa angka.',
+                'items.*.jumlah_order.min' => 'Jumlah order minimal 1.',
+                'items.*.catatan.string' => 'Catatan harus berupa teks.',
+                'items.*.catatan.max' => 'Catatan maksimal 255 karakter.',
+            ];
             $validated = $request->validate([
                 'supplier_id' => 'required|exists:suppliers,kode_supplier',
                 'tanggal_order' => 'required|date|before_or_equal:today',
@@ -128,7 +147,7 @@ class OrderController extends Controller
                 'items.*.item_id' => 'required|exists:items,kode_barang',
                 'items.*.jumlah_order' => 'required|integer|min:1',
                 'items.*.catatan' => 'nullable|string|max:255',
-            ]);
+            ], $messages);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->validator)->withInput();
         }
@@ -138,37 +157,41 @@ class OrderController extends Controller
         $lastNomorOrder = $lastNomorOrder ? intval(substr($lastNomorOrder->nomor_order, -4)) : 0;
         $newNomorOrder = 'ORD-' . str_pad($lastNomorOrder + 1, 4, '0', STR_PAD_LEFT);
 
-        // Periksa apakah nomor order dengan supplier yang sama dan item yang sama sudah ada
-        foreach ($validated['items'] as $item) {
-            $existingOrder = Order::where('nomor_order', $newNomorOrder)
-                ->where('supplier_id', $validated['supplier_id'])
-                ->where('kode_barang', $item['item_id'])
-                ->exists();
-            
-            if ($existingOrder) {
-                return redirect()->route('order.create')->with('error', 'Barang dengan nomor order ini sudah ada.');
-            }
-        }
-
-        // Loop untuk setiap item yang dipilih dan buat order
-        foreach ($validated['items'] as $item) {
-            $itemData = Item::find($item['item_id']);
-
-            // Cek apakah item ada di database
-            if (!$itemData) {
-                return redirect()->route('order.create')->with('error', 'Item tidak ditemukan.');
+        try {
+            // Periksa apakah nomor order dengan supplier yang sama dan item yang sama sudah ada
+            foreach ($validated['items'] as $item) {
+                $existingOrder = Order::where('nomor_order', $newNomorOrder)
+                    ->where('supplier_id', $validated['supplier_id'])
+                    ->where('kode_barang', $item['item_id'])
+                    ->exists();
+                
+                if ($existingOrder) {
+                    return redirect()->route('order.create')->with('error', 'Barang dengan nomor order ini sudah ada.');
+                }
             }
 
-            // Simpan order baru untuk setiap item
-            Order::create([
-                'nomor_order' => $newNomorOrder,
-                'supplier_id' => $validated['supplier_id'],
-                'kode_barang' => $item['item_id'],
-                'jumlah_order' => $item['jumlah_order'],
-                'tanggal_order' => $validated['tanggal_order'],
-                'status_order' => 'pending',
-                'catatan' => $item['catatan'] ?? null,
-            ]);
+            // Loop untuk setiap item yang dipilih dan buat order
+            foreach ($validated['items'] as $item) {
+                $itemData = Item::find($item['item_id']);
+
+                // Cek apakah item ada di database
+                if (!$itemData) {
+                    return redirect()->route('order.create')->with('error', 'Item tidak ditemukan.');
+                }
+
+                // Simpan order baru untuk setiap item
+                Order::create([
+                    'nomor_order' => $newNomorOrder,
+                    'supplier_id' => $validated['supplier_id'],
+                    'kode_barang' => $item['item_id'],
+                    'jumlah_order' => $item['jumlah_order'],
+                    'tanggal_order' => $validated['tanggal_order'],
+                    'status_order' => 'pending',
+                    'catatan' => $item['catatan'] ?? null,
+                ]);
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('order.create')->with('error', 'Terjadi kesalahan saat menambahkan barang: ' . $e->getMessage());
         }
 
         return redirect()->route('order.index')->with('success', 'Order berhasil dibuat.');

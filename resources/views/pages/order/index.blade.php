@@ -98,7 +98,7 @@
                                         Selesaikan Pesanan
                                     </a>
                                     <form action="{{ route('order.cancel', ['id' => $nomorOrder]) }}" method="POST"
-                                        class="d-inline cancel-order-form ms-2">
+                                        class="d-inline cancel-order-form">
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" class="btn btn-danger cancel-order-btn">
@@ -117,12 +117,12 @@
             {!! $orders->links('pagination::bootstrap-4') !!}
         </div>
 
-        {{-- Modal Konfirmasi Batal --}}
         <div class="modal fade" id="modalKonfirmasiBatal" tabindex="-1" aria-labelledby="modalKonfirmasiBatalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
-                <form id="formBatalOrder">
+                <form id="formBatalOrder" method="POST" action="">
                     @csrf
+                    @method('PATCH')
                     <input type="hidden" name="order_id" id="order_id_batal">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -149,9 +149,6 @@
 
     @push('scripts')
         <script>
-            // d:\Jojo\Sistem Informasi\Semester 6\Kerja Praktik\sirkulasiStok\resources\views\pages\order\index.blade.php
-            // Script ini sudah benar untuk tujuannya (membuka filter jika ada parameter aktif di URL).
-            // Script ini TIDAK mencegah filter untuk ditutup.
             document.addEventListener('DOMContentLoaded', function () {
                 const searchFormCollapseElement = document.getElementById('searchFormCollapseOrder');
                 const triggerButton = document.querySelector(`button[data-bs-target="#searchFormCollapseOrder"]`);
@@ -169,15 +166,57 @@
                     }
 
                     if (hasActiveFilter) {
-                        // Hanya menambahkan 'show' jika ada filter aktif, tidak ada 'else'
-                        // yang akan mengganggu toggle manual.
                         searchFormCollapseElement.classList.add('show');
                         triggerButton.setAttribute('aria-expanded', 'true');
                     }
-                    // Fungsi buka-tutup selanjutnya ditangani oleh Bootstrap JS melalui
-                    // atribut data-bs-toggle="collapse" pada tombol.
                 }
-            });
 
+                const cancelButtons = document.querySelectorAll('.cancel-order-btn');
+                cancelButtons.forEach(button => {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault(); // Prevent default button behavior
+                        const form = this.closest('form');
+                        const actionUrl = form.getAttribute('action');
+                        const parts = actionUrl.split('/');
+                        const orderId = parts[parts.length - 2];
+
+                        // Populate hidden input with order ID
+                        document.getElementById('order_id_batal').value = orderId;
+                        // Show the modal
+                        const modalElement = document.getElementById('modalKonfirmasiBatal');
+                        const modal = new bootstrap.Modal(modalElement);
+                        modal.show();
+                        // Set the form action dynamically to the correct cancel route
+                        const formBatalOrder = document.getElementById('formBatalOrder');
+                        formBatalOrder.action = `/order/${orderId}/cancel`; // Corrected action URL
+                        // Handle form submission with confirmation
+                        formBatalOrder.onsubmit = function (e) {
+                            e.preventDefault();
+                            const catatan = document.getElementById('catatan_batal').value;
+                            Swal.fire({
+                                title: 'Yakin membatalkan pesanan?',
+                                html: `<p><strong>Alasan:</strong> ${catatan || 'Tidak ada alasan diberikan'}</p>`,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Batalkan',
+                                cancelButtonText: 'Batal',
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    formBatalOrder.submit();
+                                }
+                            });
+                        };
+                    });
+                });
+            });
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#28a745'
+                });
+            @endif
         </script>
     @endpush
