@@ -27,6 +27,7 @@ class HomepageController extends Controller
             'totalBarang' => Item::count(),
             'totalSupplier' => Supplier::count(),
             'pendingOrders' => Order::where('status_order', 'pending')->distinct('nomor_order')->count('nomor_order'),
+            'totalUser' => \App\Models\User::count(),
             'barangKeluarHariIni' => StockExit::whereDate('created_at', today())->sum('stok_keluar'),
             'barangMasukHariIni' => StockEntry::whereDate('created_at', today())->sum('stok_masuk'),
             'barangKeluarBulanIni' => StockExit::whereMonth('created_at', now()->month)->sum('stok_keluar'),

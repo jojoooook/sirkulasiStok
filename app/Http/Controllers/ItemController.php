@@ -81,7 +81,10 @@ class ItemController extends Controller
 
         if ($request->hasFile('gambar')) {
             try {
-                $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+                $file = $request->file('gambar');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('images'), $filename);
+                $validated['gambar'] = 'images/' . $filename;
             } catch (\Exception $e) {
                 return redirect()->back()
                     ->withErrors(['gambar' => 'Gagal mengunggah gambar: ' . $e->getMessage()])
@@ -135,19 +138,23 @@ class ItemController extends Controller
         $item = Item::findOrFail($kode_barang);
 
         if ($request->hasFile('gambar')) {
-            if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
-                Storage::disk('public')->delete($item->gambar);
+            if ($item->gambar && file_exists(public_path($item->gambar))) {
+                unlink(public_path($item->gambar));
             }
 
             try {
-                $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+                $file = $request->file('gambar');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('images'), $filename);
+                $validated['gambar'] = 'images/' . $filename;
             } catch (\Exception $e) {
                 return redirect()->back()
                     ->withErrors(['gambar' => 'Gagal mengunggah gambar: ' . $e->getMessage()])
                     ->withInput();
             }
         } else {
-            $validated['gambar'] = $item->gambar;
+            // Remove 'gambar' from validated data to avoid overwriting with old value
+            unset($validated['gambar']);
         }
 
         $item->update($validated);
@@ -164,8 +171,8 @@ class ItemController extends Controller
             return redirect()->route('item.index')->with('error', 'Barang tidak dapat dihapus karena memiliki supplier terkait.');
         }
 
-        if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
-            Storage::disk('public')->delete($item->gambar);
+        if ($item->gambar && file_exists(public_path($item->gambar))) {
+            unlink(public_path($item->gambar));
         }
 
         $item->delete();

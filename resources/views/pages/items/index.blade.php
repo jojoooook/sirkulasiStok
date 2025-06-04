@@ -105,10 +105,10 @@
                                 <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                                 <td>
                                     @if($item->gambar)
-                                        <img src="{{ Storage::url($item->gambar) }}" class="img-thumbnail zoomable-image"
+                                        <img src="{{ asset($item->gambar) }}" class="img-thumbnail zoomable-image"
                                             style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
                                             data-bs-toggle="modal" data-bs-target="#imageModal"
-                                            data-image="{{ Storage::url($item->gambar) }}" alt="{{ $item->nama_barang }}">
+                                            data-image="{{ asset($item->gambar) }}" alt="{{ $item->nama_barang }}">
                                     @else
                                         <span class="text-danger">Tidak ada gambar</span>
                                     @endif
@@ -195,6 +195,6 @@
             @if(session('error'))
                 Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}' });
             @endif
-                    });
+                        });
     </script>
 @endpush

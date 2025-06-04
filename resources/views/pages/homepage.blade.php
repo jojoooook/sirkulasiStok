@@ -50,6 +50,25 @@
                 </div>
             </div>
 
+            <!-- Total User -->
+            <div class="col-md-3">
+                <div class="card shadow rounded border-0" style="background-color: #17a2b8; color: white;">
+                    <div class="card-body d-flex flex-column justify-content-between" style="min-height: 140px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Total User</h5>
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h2 class="card-text fw-bold">{{ $totalUser }}</h2>
+                        <p class="mb-2" style="font-size: 0.9rem; opacity: 0.8;">Jumlah total pengguna sistem</p>
+                        <a href="{{ route('setting.index') }}"
+                            class="text-white text-decoration-none align-self-start fw-semibold"
+                            style="transition: color 0.3s;">
+                            More info <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pending Orders -->
             <div class="col-md-3">
                 <div class="card shadow rounded border-0" style="background-color: #d39e00; color: white;">
