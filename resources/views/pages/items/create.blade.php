@@ -7,11 +7,17 @@
         <h1>Tambah Barang Baru</h1>
         <form id="item-form" action="{{ route('item.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @if ($errors->has('kode_barang'))
+
+            @if ($errors->any())
                 <div class="alert alert-danger">
-                    {{ $errors->first('kode_barang') }}
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
+
             <div class="mb-3">
                 <label for="kode_barang" class="form-label">Kode Barang</label>
                 <input type="text" class="form-control" id="kode_barang" name="kode_barang" value="{{ old('kode_barang') }}"

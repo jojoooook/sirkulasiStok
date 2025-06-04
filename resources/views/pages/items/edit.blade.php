@@ -46,7 +46,8 @@
 
             <div class="mb-3">
                 <label for="stok" class="form-label">Stok</label>
-                <input type="number" class="form-control" id="stok" name="stok" min="0" value="{{ $item->stok }}" required>
+                <input type="number" class="form-control" id="stok" name="stok" min="0" value="{{ $item->stok }}" required
+                    readonly>
             </div>
 
             <div class="mb-3">

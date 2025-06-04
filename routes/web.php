@@ -28,7 +28,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/item', [ItemController::class, 'index'])->name('item.index'); // Daftar Barang
         Route::get('/item/create', [ItemController::class, 'create'])->name('item.create'); // Create form
         Route::post('/item', [ItemController::class, 'store'])->name('item.store'); // Store new item
-        Route::get('/item/{id}/show', [ItemController::class, 'show'])->name('item.show'); // Detail Barang
         Route::get('/item/{id}/edit', [ItemController::class, 'edit'])->name('item.edit'); // Edit form
         Route::put('/item/{id}', [ItemController::class, 'update'])->name('item.update'); // Update item
         Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy'); // Delete item

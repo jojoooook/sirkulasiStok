@@ -17,7 +17,8 @@ class ItemController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'like', "%{$search}%")
+                $q->where('kode_barang', 'like', "%{$search}%")
+                ->orWhere('nama_barang', 'like', "%{$search}%")
                 ->orWhere('stok', 'like', "%{$search}%")
                 ->orWhere('harga', 'like', "%{$search}%");
             });
@@ -49,6 +50,26 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
+        $messages = [
+            'kode_barang.required' => 'Kode barang wajib diisi.',
+            'kode_barang.string' => 'Kode barang harus berupa teks.',
+            'kode_barang.max' => 'Kode barang maksimal 255 karakter.',
+            'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'nama_barang.required' => 'Nama barang wajib diisi.',
+            'nama_barang.string' => 'Nama barang harus berupa teks.',
+            'nama_barang.max' => 'Nama barang maksimal 255 karakter.',
+            'supplier_id.exists' => 'Supplier tidak valid.',
+            'stok.required' => 'Stok wajib diisi.',
+            'stok.integer' => 'Stok harus berupa angka bulat.',
+            'stok.min' => 'Stok minimal 0.',
+            'harga.required' => 'Harga wajib diisi.',
+            'harga.numeric' => 'Harga harus berupa angka.',
+            'harga.min' => 'Harga minimal 0.',
+            'gambar.image' => 'File gambar harus berupa gambar.',
+            'gambar.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+            'gambar.max' => 'Ukuran gambar maksimal 2MB.',
+        ];
+
         $validated = $request->validate([
             'kode_barang' => 'required|string|max:255|unique:items,kode_barang',
             'nama_barang' => 'required|string|max:255',
@@ -56,10 +77,16 @@ class ItemController extends Controller
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        ], $messages);
 
         if ($request->hasFile('gambar')) {
-            $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+            try {
+                $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withErrors(['gambar' => 'Gagal mengunggah gambar: ' . $e->getMessage()])
+                    ->withInput();
+            }
         }
 
         Item::create($validated);
@@ -76,6 +103,26 @@ class ItemController extends Controller
 
     public function update(Request $request, $kode_barang)
     {
+        $messages = [
+            'kode_barang.required' => 'Kode barang wajib diisi.',
+            'kode_barang.string' => 'Kode barang harus berupa teks.',
+            'kode_barang.max' => 'Kode barang maksimal 255 karakter.',
+            'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'nama_barang.required' => 'Nama barang wajib diisi.',
+            'nama_barang.string' => 'Nama barang harus berupa teks.',
+            'nama_barang.max' => 'Nama barang maksimal 255 karakter.',
+            'supplier_id.exists' => 'Supplier tidak valid.',
+            'stok.required' => 'Stok wajib diisi.',
+            'stok.integer' => 'Stok harus berupa angka bulat.',
+            'stok.min' => 'Stok minimal 0.',
+            'harga.required' => 'Harga wajib diisi.',
+            'harga.numeric' => 'Harga harus berupa angka.',
+            'harga.min' => 'Harga minimal 0.',
+            'gambar.image' => 'File gambar harus berupa gambar.',
+            'gambar.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+            'gambar.max' => 'Ukuran gambar maksimal 2MB.',
+        ];
+
         $validated = $request->validate([
             'kode_barang' => 'required|string|max:255|unique:items,kode_barang,' . $kode_barang . ',kode_barang',
             'nama_barang' => 'required|string|max:255',
@@ -83,7 +130,7 @@ class ItemController extends Controller
             'stok' => 'required|integer|min:0',
             'harga' => 'required|numeric|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        ], $messages);
 
         $item = Item::findOrFail($kode_barang);
 
@@ -92,7 +139,13 @@ class ItemController extends Controller
                 Storage::disk('public')->delete($item->gambar);
             }
 
-            $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+            try {
+                $validated['gambar'] = $request->file('gambar')->store('images', 'public');
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withErrors(['gambar' => 'Gagal mengunggah gambar: ' . $e->getMessage()])
+                    ->withInput();
+            }
         } else {
             $validated['gambar'] = $item->gambar;
         }
