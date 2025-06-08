@@ -124,10 +124,12 @@
                 <tbody>
                     @foreach($stockExits as $group)
                         <tr class="table-primary">
-                            <td colspan="5">
+                            <td colspan="6">
                                 <strong>Nomor Nota:</strong> {{ $group->nomor_nota }} &nbsp;&nbsp;
                                 <strong>Tanggal Keluar:</strong>
-                                {{ \Carbon\Carbon::parse($group->tanggal_keluar)->format('Y-m-d') }}
+                                {{ \Carbon\Carbon::parse($group->tanggal_keluar)->format('Y-m-d') }} &nbsp;&nbsp;
+                                <strong>Dicatat Oleh:</strong>
+                                {{ $group->user ? $group->user->name : '-' }}
                             </td>
                         </tr>
                         @foreach($group->items as $exit)

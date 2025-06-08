@@ -14,10 +14,16 @@ class StockExit extends Model
         'tanggal_keluar',
         'keterangan',
         'nomor_nota',
+        'user_id',
     ];
 
     public function item()
     {
         return $this->belongsTo(Item::class, 'kode_barang', 'kode_barang');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

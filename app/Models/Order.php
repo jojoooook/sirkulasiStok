@@ -32,6 +32,11 @@ class Order extends Model
         return $this->belongsTo(Item::class, 'kode_barang', 'kode_barang');
     }
 
+    public function stockEntries()
+    {
+        return $this->hasMany(StockEntry::class, 'nomor_invoice', 'nomor_invoice');
+    }
+
     public function scopeOrderBySupplierName($query, $direction = 'asc')
     {
         return $query->leftJoin('suppliers', 'orders.supplier_id', '=', 'suppliers.kode_supplier')

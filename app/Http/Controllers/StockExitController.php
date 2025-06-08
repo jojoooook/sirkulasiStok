@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\StockExit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StockExitController extends Controller
 {
@@ -43,20 +44,23 @@ class StockExitController extends Controller
         $query->orderBy($sortColumn, $sortOrder);
 
         // Paginate the query
-        $stockExitsPaginated = $query->with('item')->paginate(10)->appends($request->except('page'));
+        $stockExitsPaginated = $query->with(['item', 'user'])->paginate(10)->appends($request->except('page'));
 
         // Group the current page's items by nomor_nota and tanggal_keluar
         $stockExitsGrouped = $stockExitsPaginated->getCollection()->groupBy(function ($item) {
             return $item->nomor_nota . '|' . $item->tanggal_keluar;
         });
 
-        // Convert grouped collection to array of objects with nomor_nota, tanggal_keluar, and items
+        // Convert grouped collection to array of objects with nomor_nota, tanggal_keluar, items, and user
         $stockExits = $stockExitsGrouped->map(function ($group, $key) {
             [$nomorNota, $tanggalKeluar] = explode('|', $key);
+            // Assuming all items in the group have the same user
+            $user = $group->first()->user;
             return (object)[
                 'nomor_nota' => $nomorNota,
                 'tanggal_keluar' => $tanggalKeluar,
                 'items' => $group,
+                'user' => $user,
             ];
         });
 
@@ -144,6 +148,7 @@ class StockExitController extends Controller
                 'stok_keluar' => $itemData['jumlah_keluar'],
                 'tanggal_keluar' => $tanggalKeluar,
                 'keterangan' => $itemData['catatan'] ?? null,
+                'user_id' => Auth::id(),
             ]);
         }
 
