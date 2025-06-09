@@ -23,6 +23,8 @@ class HomepageController extends Controller
             ->with('item')
             ->get();
 
+        $items = Item::paginate(10);
+
         return view('pages.homepage', [
             'totalBarang' => Item::count(),
             'totalSupplier' => Supplier::count(),
@@ -32,8 +34,9 @@ class HomepageController extends Controller
             'barangMasukHariIni' => StockEntry::whereDate('created_at', today())->sum('stok_masuk'),
             'barangKeluarBulanIni' => StockExit::whereMonth('created_at', now()->month)->sum('stok_keluar'),
             'barangMasukBulanIni' => StockEntry::whereMonth('created_at', now()->month)->sum('stok_masuk'),
-            'barangHampirHabis' => Item::where('stok', '<=', 10)->get(),
+            'barangHampirHabis' => Item::where('stok', '<=', 10)->paginate(10),
             'jumlahBarangKeluarHariIni' => $jumlahBarangKeluarHariIni,
+            'items' => $items,
             'error' => $error, // Mengirimkan pesan error ke view
         ]);
     }

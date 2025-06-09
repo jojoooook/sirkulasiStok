@@ -179,6 +179,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>No</th>
+                                            <th>Kode Barang</th>
                                             <th>Nama Barang</th>
                                             <th>Stok</th>
                                         </tr>
@@ -186,7 +187,8 @@
                                     <tbody>
                                         @foreach ($barangHampirHabis as $index => $item)
                                             <tr>
-                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $barangHampirHabis->firstItem() + $index }}</td>
+                                                <td>{{ $item->kode_barang }}</td>
                                                 <td>{{ $item->nama_barang }}</td>
                                                 <td class="text-danger fw-bold">{{ $item->stok }}</td>
                                             </tr>
@@ -194,11 +196,16 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="p-3">
+                                {{ $barangHampirHabis->links('pagination::bootstrap-4') }}
+                            </div>
                         @endif
                     </div>
                 </div>
             </div>
 
         </div>
+
+    </div>
     </div>
 @endsection

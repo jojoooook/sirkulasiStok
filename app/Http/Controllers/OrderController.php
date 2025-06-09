@@ -317,6 +317,7 @@ class OrderController extends Controller
 
                 if ($stockEntry) {
                     $stockEntry->stok_masuk += $jumlahMasuk;
+                    $stockEntry->order_id = $order->id; 
                     $stockEntry->save();
                 } else {
                     StockEntry::create([
@@ -326,6 +327,7 @@ class OrderController extends Controller
                         'stok_masuk' => $jumlahMasuk,
                         'tanggal_masuk' => $request->input('tanggal_invoice'),
                         'keterangan' => $orderData['catatan'] ?? null,
+                        'order_id' => $order->id, 
                     ]);
                 }
             }
