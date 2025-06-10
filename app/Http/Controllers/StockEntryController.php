@@ -25,7 +25,7 @@ class StockEntryController extends Controller
         }
 
         if (request('nomor_invoice')) {
-            $query->where('nomor_invoice', 'like', '%' . request('nomor_invoice') . '%');
+            $query->where('orders.nomor_invoice', 'like', '%' . request('nomor_invoice') . '%');
         }
 
         if (request('supplier_nama')) {
