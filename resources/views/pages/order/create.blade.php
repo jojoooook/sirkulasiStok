@@ -138,14 +138,14 @@
                         dataType: 'json',
                         success: function (data) {
                             $.each(data, function (key, item) {
-                                $('#item_id_0').append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok ' + item.stok + '</option>');
+                                $('#item_id_0').append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok sekarang ' + item.stok + '</option>');
                             });
                             // After appending options, check if there is a selected value and add option if missing
                             var selectedVal = $('#item_id_0').val();
                             if (selectedVal && $('#item_id_0').find("option[value='" + selectedVal + "']").length === 0) {
                                 var foundItem = data.find(item => item.kode_barang === selectedVal);
                                 if (foundItem) {
-                                    $('#item_id_0').append('<option value="' + foundItem.kode_barang + '">' + foundItem.kode_barang + ' - ' + foundItem.nama_barang + ' - sisa stok ' + foundItem.stok + '</option>');
+                                    $('#item_id_0').append('<option value="' + foundItem.kode_barang + '">' + foundItem.kode_barang + ' - ' + foundItem.nama_barang + ' - sisa stok sekarang ' + foundItem.stok + '</option>');
                                 }
                             }
                             // Destroy and reinitialize select2 to refresh display
@@ -172,29 +172,29 @@
             $('#add-item').on('click', function () {
                 itemCount++;
                 let newItem = `
-                                                                                <div class="order-item-container card p-3 mb-3">
-                                                                                <div class="row">
-                                                                                <div class="col-md-6">
-                                                                                <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
-                                                                                <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
-                                                                                <option value="">Pilih Barang</option>
-                                                                                </select>
-                                                                                <small class="text-muted" id="stock_info_${itemCount}"></small>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                <label for="jumlah_order" class="form-label">Jumlah Order</label>
-                                                                                <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
-                                                                                <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
-                                                                                </div>
-                                                                                <div class="col-md-2 d-flex align-items-end">
-                                                                                <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
-                                                                                </div>
-                                                                                </div>
-                                                                                </div>
-                                                                                `;
+                                                                                        <div class="order-item-container card p-3 mb-3">
+                                                                                        <div class="row">
+                                                                                        <div class="col-md-6">
+                                                                                        <label for="item_id_${itemCount}" class="form-label">Pilih Barang</label>
+                                                                                        <select name="items[${itemCount}][item_id]" id="item_id_${itemCount}" class="form-control item-select" required>
+                                                                                        <option value="">Pilih Barang</option>
+                                                                                        </select>
+                                                                                        <small class="text-muted" id="stock_info_${itemCount}"></small>
+                                                                                        </div>
+                                                                                        <div class="col-md-4">
+                                                                                        <label for="jumlah_order" class="form-label">Jumlah Order</label>
+                                                                                        <input type="number" name="items[${itemCount}][jumlah_order]" class="form-control" min="1" required>
+                                                                                        </div>
+                                                                                        <div class="col-md-4">
+                                                                                        <label for="catatan_${itemCount}" class="form-label">Catatan (Opsional)</label>
+                                                                                        <input type="text" name="items[${itemCount}][catatan]" id="catatan_${itemCount}" class="form-control">
+                                                                                        </div>
+                                                                                        <div class="col-md-2 d-flex align-items-end">
+                                                                                        <button type="button" class="btn btn-danger remove-item">Hapus Pesanan</button>
+                                                                                        </div>
+                                                                                        </div>
+                                                                                        </div>
+                                                                                        `;
                 $('#order-items').append(newItem);
                 initItemSelect();
                 onItemSelectChange();
@@ -206,7 +206,7 @@
                         dataType: 'json',
                         success: function (data) {
                             $.each(data, function (key, item) {
-                                $('#item_id_' + itemCount).append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok ' + item.stok + '</option>');
+                                $('#item_id_' + itemCount).append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok sekarang ' + item.stok + '</option>');
                             });
                             // Destroy and reinitialize select2 to refresh display
                             $('#item_id_' + itemCount).select2('destroy');
@@ -242,7 +242,7 @@
                                 $.each(data, function (key, item) {
                                     if (item.kode_barang === selectedVal) {
                                         if (select.find("option[value='" + selectedVal + "']").length === 0) {
-                                            select.append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok ' + item.stok + '</option>');
+                                            select.append('<option value="' + item.kode_barang + '">' + item.kode_barang + ' - ' + item.nama_barang + ' - sisa stok sekarang ' + item.stok + '</option>');
                                         }
                                         found = true;
                                         return false;
@@ -269,7 +269,7 @@
                         success: function (data) {
                             var foundItem = data.find(item => item.kode_barang === firstVal);
                             if (foundItem) {
-                                firstSelect.append('<option value="' + foundItem.kode_barang + '">' + foundItem.kode_barang + ' - ' + foundItem.nama_barang + ' - sisa stok ' + foundItem.stok + '</option>');
+                                firstSelect.append('<option value="' + foundItem.kode_barang + '">' + foundItem.kode_barang + ' - ' + foundItem.nama_barang + ' - sisa stok sekarang ' + foundItem.stok + '</option>');
                                 firstSelect.trigger('change');
                             }
                         }
@@ -297,12 +297,12 @@
                 Swal.fire({
                     title: 'Konfirmasi Order',
                     html: `<div class="text-left">
-                                                        <p>Nomor Order: ${orderNumber}</p>
-                                                        <p>Tanggal: ${orderDate}</p>
-                                                        <p>Supplier: ${supplierName}</p>
-                                                        <p>Detail Pesanan:</p>
-                                                        <pre>${itemsList}</pre>
-                                                        </div>`,
+                                                                <p>Nomor Order: ${orderNumber}</p>
+                                                                <p>Tanggal: ${orderDate}</p>
+                                                                <p>Supplier: ${supplierName}</p>
+                                                                <p>Detail Pesanan:</p>
+                                                                <pre>${itemsList}</pre>
+                                                                </div>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Buat Order',
