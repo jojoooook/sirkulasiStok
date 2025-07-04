@@ -23,6 +23,12 @@ class HomepageController extends Controller
             ->with('item')
             ->get();
 
+        // Ambil daftar semua item dengan stok ≤ 10 dan urutkan dari stok paling sedikit
+        $barangHampirHabis = Item::where('stok', '<=', 10)
+            ->orderBy('stok', 'asc')
+            ->paginate(10);
+
+        // Ambil semua item (jika diperlukan di bagian lain dari homepage)
         $items = Item::paginate(10);
 
         return view('pages.homepage', [
@@ -34,7 +40,7 @@ class HomepageController extends Controller
             'barangMasukHariIni' => StockEntry::whereDate('created_at', today())->sum('stok_masuk'),
             'barangKeluarBulanIni' => StockExit::whereMonth('created_at', now()->month)->sum('stok_keluar'),
             'barangMasukBulanIni' => StockEntry::whereMonth('created_at', now()->month)->sum('stok_masuk'),
-            'barangHampirHabis' => Item::where('stok', '<=', 10)->paginate(10),
+            'barangHampirHabis' => $barangHampirHabis,
             'jumlahBarangKeluarHariIni' => $jumlahBarangKeluarHariIni,
             'items' => $items,
             'error' => $error, // Mengirimkan pesan error ke view
