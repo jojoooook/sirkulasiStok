@@ -71,23 +71,27 @@
                             </td>
 
                             <td>
+                                @if ($user->username !== 'admin' || Auth::user()->username === 'admin')
                                 <a href="{{ route('setting.edit', $user->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
+                                @endif
 
-                                <form action="{{ route('setting.toggleActive', $user->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    @if($user->active)
-                                        <button type="submit" class="btn btn-secondary btn-sm" title="Nonaktifkan Pengguna">
-                                            <i class="fas fa-user-slash"></i> Nonaktifkan
-                                        </button>
-                                    @else
-                                        <button type="submit" class="btn btn-success btn-sm" title="Aktifkan Pengguna">
-                                            <i class="fas fa-user-check"></i> Aktifkan
-                                        </button>
-                                    @endif
-                                </form>
+                                @if(Auth::user()->username === 'admin' && Auth::user()->id !== $user->id)
+                                    <form action="{{ route('setting.toggleActive', $user->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        @if($user->active)
+                                            <button type="submit" class="btn btn-secondary btn-sm" title="Nonaktifkan Pengguna">
+                                                <i class="fas fa-user-slash"></i> Nonaktifkan
+                                            </button>
+                                        @else
+                                            <button type="submit" class="btn btn-success btn-sm" title="Aktifkan Pengguna">
+                                                <i class="fas fa-user-check"></i> Aktifkan
+                                            </button>
+                                        @endif
+                                    </form>
+                                @endif
                             </td>
 
                         </tr>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
@@ -67,12 +68,23 @@ class SettingController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
+
+        // Hanya superadmin yang bisa mengedit superadmin
+        if ($user->username === 'admin' && Auth::user()->username !== 'admin') {
+            return redirect()->route('setting.index')->with('error', 'Anda tidak memiliki izin untuk mengedit superadmin.');
+        }
+
         return view('pages.setting.edit', compact('user'));
     }
 
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+
+        // Hanya superadmin yang bisa mengedit superadmin
+        if ($user->username === 'admin' && Auth::user()->username !== 'admin') {
+            return redirect()->route('setting.index')->with('error', 'Anda tidak memiliki izin untuk mengedit superadmin.');
+        }
 
         // Validasi update data
         $request->validate([
@@ -90,6 +102,11 @@ class SettingController extends Controller
             'password.min' => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password baru tidak sama.',
         ]);
+
+        // Mencegah admin mengubah rolenya sendiri
+        if (Auth::user()->id == $id && Auth::user()->role == 'admin' && $request->role !== $user->role) {
+            return redirect()->route('setting.edit', $user->id)->with('error', 'Admin tidak dapat mengubah rolenya sendiri.');
+        }
 
         // Update data pengguna
         $user->update([
@@ -116,7 +133,18 @@ class SettingController extends Controller
 
     public function toggleActive($id)
     {
+        // Hanya superadmin yang bisa menonaktifkan
+        if (Auth::user()->username !== 'admin') {
+            return redirect()->route('setting.index')->with('error', 'Anda tidak memiliki izin untuk melakukan tindakan ini.');
+        }
+
         $user = User::findOrFail($id);
+
+        // Superadmin tidak bisa dinonaktifkan
+        if ($user->username === 'admin') {
+            return redirect()->route('setting.index')->with('error', 'Superadmin tidak dapat dinonaktifkan.');
+        }
+
         $user->active = !$user->active;
         $user->save();
 
