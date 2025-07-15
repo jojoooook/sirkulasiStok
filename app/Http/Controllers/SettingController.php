@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -11,8 +12,17 @@ class SettingController extends Controller
 {
     public function index()
     {
+        $settings = [];
+        $path = storage_path('app/settings.json');
+
+        if (File::exists($path)) {
+            $settings = json_decode(File::get($path), true);
+        }
+
+        $lowStockThreshold = $settings['low_stock_threshold'] ?? 10;
         $users = User::paginate(10);
-        return view('pages.setting.index', compact('users'));
+
+        return view('pages.setting.index', compact('users', 'lowStockThreshold'));
     }
 
     public function create()
@@ -124,5 +134,29 @@ class SettingController extends Controller
         $user->save();
 
         return redirect()->route('setting.edit', $user->id)->with('success', 'Password berhasil direset menjadi 123456.');
+    }
+
+    public function updateThreshold(Request $request)
+    {
+        $request->validate([
+            'low_stock_threshold' => 'required|integer|min:0',
+        ], [
+            'low_stock_threshold.required' => 'Ambang batas stok rendah wajib diisi.',
+            'low_stock_threshold.integer' => 'Ambang batas stok rendah harus berupa angka.',
+            'low_stock_threshold.min' => 'Ambang batas stok rendah tidak boleh negatif.',
+        ]);
+
+        $path = storage_path('app/settings.json');
+        $settings = [];
+
+        if (File::exists($path)) {
+            $settings = json_decode(File::get($path), true);
+        }
+
+        $settings['low_stock_threshold'] = $request->low_stock_threshold;
+
+        File::put($path, json_encode($settings, JSON_PRETTY_PRINT));
+
+        return redirect()->route('setting.index')->with('success', 'Ambang batas stok rendah berhasil diperbarui.');
     }
 }

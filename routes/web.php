@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/setting/{id}', [SettingController::class, 'update'])->name('setting.update');
         Route::patch('/setting/{id}/toggle-active', [SettingController::class, 'toggleActive'])->name('setting.toggleActive');
         Route::post('/setting/reset-password/{id}', [SettingController::class, 'resetPassword'])->name('setting.resetPassword');
+        Route::patch('/setting/update-threshold', [SettingController::class, 'updateThreshold'])->name('setting.update_threshold');
     });
 
     // Karyawan hanya bisa mengakses Dashboard, Daftar Barang, dan Barang Keluar

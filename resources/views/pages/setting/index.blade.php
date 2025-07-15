@@ -1,8 +1,26 @@
-@extends('layouts.app')
+"""@extends('layouts.app')
 
 @section('content')
 
     <div class="container mt-4">
+        <!-- Form untuk mengatur ambang batas stok rendah -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Atur Ambang Batas Stok Rendah</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('setting.update_threshold') }}" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <div class="form-group">
+                        <label for="low_stock_threshold">Ambang Batas Stok Rendah</label>
+                        <input type="number" class="form-control" id="low_stock_threshold" name="low_stock_threshold"
+                            value="{{ $lowStockThreshold }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Simpan Pengaturan</button>
+                </form>
+            </div>
+        </div>
 
         <h1 class="mb-4 text-center">Daftar Pengguna</h1>
 

@@ -168,7 +168,7 @@
             <div class="col-md-12">
                 <div class="card shadow border-0 mt-4">
                     <div class="card-header bg-warning text-dark">
-                        <strong>Barang Hampir Habis (≤ 10)</strong>
+                        <strong>Barang Hampir Habis (≤ {{ $lowStockThreshold }})</strong>
                     </div>
                     <div class="card-body p-0">
                         @if($barangHampirHabis->isEmpty())

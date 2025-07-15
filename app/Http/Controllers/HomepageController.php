@@ -8,6 +8,7 @@ use App\Models\StockExit;
 use App\Models\Supplier;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class HomepageController extends Controller
 {
@@ -23,8 +24,13 @@ class HomepageController extends Controller
             ->with('item')
             ->get();
 
-        // Ambil daftar semua item dengan stok ≤ 10 dan urutkan dari stok paling sedikit
-        $barangHampirHabis = Item::where('stok', '<=', 10)
+        // Ambil ambang batas stok rendah dari file settings.json
+        $settingsPath = storage_path('app/settings.json');
+        $settings = File::exists($settingsPath) ? json_decode(File::get($settingsPath), true) : [];
+        $lowStockThreshold = $settings['low_stock_threshold'] ?? 10;
+
+        // Ambil daftar semua item dengan stok <= ambang batas dan urutkan dari stok paling sedikit
+        $barangHampirHabis = Item::where('stok', '<=', $lowStockThreshold)
             ->orderBy('stok', 'asc')
             ->paginate(10);
 
@@ -44,6 +50,7 @@ class HomepageController extends Controller
             'jumlahBarangKeluarHariIni' => $jumlahBarangKeluarHariIni,
             'items' => $items,
             'error' => $error, // Mengirimkan pesan error ke view
+            'lowStockThreshold' => $lowStockThreshold, // Mengirimkan ambang batas ke view
         ]);
     }
 }
