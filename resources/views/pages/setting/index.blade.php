@@ -71,7 +71,7 @@
                             </td>
 
                             <td>
-                                @if ($user->username !== 'admin' || Auth::user()->username === 'admin')
+                                @if (Auth::user()->username === 'admin')
                                 <a href="{{ route('setting.edit', $user->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
